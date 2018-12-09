@@ -1,0 +1,24 @@
+{
+  "default": {
+    "dev": {
+      "index.html": "index.html"
+    },
+    "release": {
+
+    }
+  },
+  "data_web": {
+    "dev": {
+      "Data": {},
+      "Web": {
+        "index.html": "index.html",
+        "start_page": {
+          "start_page.sass": ""
+        }
+      },
+      "Templates": {},
+      "Scripts": {}
+    },
+    "release": {}
+  }
+}
