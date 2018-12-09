@@ -17,7 +17,7 @@ from Logging import logger
 import Paths
 
 
-def create_from_template(template_name, website_name):
+def create_project_from_template(template_name, website_name):
     templates = get_all_templates()
     template = templates[template_name]
     create_recursively(template, Paths.WEBSITE_PROJECT_PATH)

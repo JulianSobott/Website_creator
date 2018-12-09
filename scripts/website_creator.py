@@ -30,7 +30,7 @@ DESCRIPTION = \
 
 
 def init(template="default", website_name=None):
-    Project_templates.create_from_template(template, website_name)
+    Project_templates.create_project_from_template(template, website_name)
 
 
 def templates(show_structure=False):
@@ -41,13 +41,17 @@ def templates(show_structure=False):
 """ Helper functions"""
 
 
-def reset():
+def reset(reset_all=False):
     import os
     import shutil
-    reset = input("Do you really want to delete content of: %s (yes/no)" % Paths.WEBSITE_PROJECT_PATH)
-    if reset == "yes":
-        for the_file in os.listdir(Paths.WEBSITE_PROJECT_PATH):
-            file_path = os.path.join(Paths.WEBSITE_PROJECT_PATH, the_file)
+    if reset_all:
+        reset_path = Paths.WEBSITE_PROJECT_PATH
+    else:
+        reset_path = Paths.WEBSITE_RELEASE_PATH
+    reset_it = input("Do you really want to delete content of: %s (yes/no)" % reset_path)
+    if reset_it == "yes":
+        for the_file in os.listdir(reset_path):
+            file_path = os.path.join(reset_path, the_file)
             try:
                 if os.path.isfile(file_path):
                     os.unlink(file_path)
@@ -55,6 +59,7 @@ def reset():
                     shutil.rmtree(file_path)
             except Exception as e:
                 print(e)
+
 
 def print_help():
     print(DESCRIPTION)
@@ -78,6 +83,7 @@ def get_optional_parameter(parameter_names: list, all_arguments: list):
 if __name__ == "__main__":
     """DEBUG Area"""
     reset_arg = ["reset"]
+    reset_all_arg = ["reset_all"]
     #init()
 
     #exit(0)
@@ -120,3 +126,5 @@ if __name__ == "__main__":
     """DEBUG"""
     if intersects(reset_arg, all_args):
         reset()
+    if intersects(reset_all_arg, all_args):
+        reset(reset_all=True)
