@@ -20,7 +20,7 @@ import Paths
 def create_from_template(template_name, website_name):
     templates = get_all_templates()
     template = templates[template_name]
-    create_recursively(template, Paths.WEBSITE_PROJECT_PATH)
+    create_recursively(template, Paths.Website.PROJECT_PATH)
 
 
 def create_recursively(json_data, root_path):
@@ -44,7 +44,7 @@ def create_recursively(json_data, root_path):
             src_path = json_data[entry]
             abs_dest_path = os.path.join(root_path, entry)
             if len(src_path) > 0:
-                abs_src_path = os.path.join(Paths.ABS_TEMPLATES_PATH, src_path)
+                abs_src_path = os.path.join(Paths.Tool.ABS_TEMPLATES_PATH, src_path)
                 try:
                     shutil.copy2(abs_src_path, abs_dest_path)
                 except FileNotFoundError as e:
@@ -55,14 +55,14 @@ def create_recursively(json_data, root_path):
 
 
 def get_all_templates():
-    with open(Paths.ABS_TEMPLATES_JSON_PATH, "r") as templates_file:
+    with open(Paths.Tool.ABS_TEMPLATES_JSON_PATH, "r") as templates_file:
         templates = json.load(templates_file)
     return templates
 
 
 def print_templates(show_structure=False):
     if show_structure:
-        with open(Paths.ABS_TEMPLATES_JSON_PATH, "r") as templates_file:
+        with open(Paths.Tool.ABS_TEMPLATES_JSON_PATH, "r") as templates_file:
             print(templates_file.read())
     else:
         templates = get_all_templates()

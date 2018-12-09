@@ -11,11 +11,18 @@
 """
 import os
 
-TOOL_PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-WEBSITE_PROJECT_PATH = os.getcwd()
 
-REL_TEMPLATES_PATH = "Templates"
-ABS_TEMPLATES_PATH = os.path.join(TOOL_PROJECT_PATH, REL_TEMPLATES_PATH)
+class Tool:
+    PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    ABS_TEMPLATES_PATH = os.path.join(PROJECT_PATH, "Templates")
+    ABS_TEMPLATES_JSON_PATH = os.path.join(ABS_TEMPLATES_PATH, "templates.json")
 
-REL_TEMPLATES_JSON_PATH = "Templates/templates.json"
-ABS_TEMPLATES_JSON_PATH = os.path.join(TOOL_PROJECT_PATH, REL_TEMPLATES_JSON_PATH)
+
+class Website:
+    PROJECT_PATH = os.getcwd()
+    ABS_RELEASE_PATH = os.path.join(PROJECT_PATH, "release")
+    ABS_DEV_PATH = os.path.join(PROJECT_PATH, "dev")
+
+    ABS_TEMPLATES_PATH = os.path.join(ABS_DEV_PATH, "Templates")
+    ABS_TEMPLATES_JSON_PATH = os.path.join(ABS_TEMPLATES_PATH, "templates.json")
+

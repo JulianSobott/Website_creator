@@ -44,10 +44,10 @@ def templates(show_structure=False):
 def reset():
     import os
     import shutil
-    reset = input("Do you really want to delete content of: %s (yes/no)" % Paths.WEBSITE_PROJECT_PATH)
+    reset = input("Do you really want to delete content of: %s (yes/no)" % Paths.Website.PROJECT_PATH)
     if reset == "yes":
-        for the_file in os.listdir(Paths.WEBSITE_PROJECT_PATH):
-            file_path = os.path.join(Paths.WEBSITE_PROJECT_PATH, the_file)
+        for the_file in os.listdir(Paths.Website.PROJECT_PATH):
+            file_path = os.path.join(Paths.Website.PROJECT_PATH, the_file)
             try:
                 if os.path.isfile(file_path):
                     os.unlink(file_path)
@@ -55,6 +55,7 @@ def reset():
                     shutil.rmtree(file_path)
             except Exception as e:
                 print(e)
+
 
 def print_help():
     print(DESCRIPTION)
@@ -90,6 +91,7 @@ if __name__ == "__main__":
     templates_structure_arg = ["--structure"]
 
     num_args = len(sys.argv) - 1
+    all_args = []
     if num_args > 0:
         all_args = sys.argv[1:]
     else:
