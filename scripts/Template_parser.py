@@ -132,6 +132,14 @@ def console_input(all_args):
         print_templates(True)
         exit(0)
     p_template_name = get_optional_parameter(opt_template_name_arg, all_args)
+
+    all_templates = get_all_templates()
+    if p_template_name not in all_templates.keys():
+        print("ERROR: Please enter a valid template name! (name=...)")
+        print("Choose one of the following: ", end="")
+        print_templates()
+        exit(0)
+
     p_template_replacements_string = get_optional_parameter(opt_template_replacements_string_arg, all_args)
     p_template_replacements_file = get_optional_parameter(opt_template_replacements_file_arg, all_args)
 
@@ -139,7 +147,17 @@ def console_input(all_args):
     if p_template_replacements_file:
         replacements = read_replacements_file(p_template_replacements_file)
     elif p_template_replacements_string:
-        replacements = p_template_replacements_string
+        json_valid_string = p_template_replacements_string.replace("'", "\"")
+        try:
+            replacements = json.loads(json_valid_string)
+        except json.decoder.JSONDecodeError as e:
+            logger.error(e)
+            replacements = ""
+
+    if not isinstance(replacements, dict) and p_template_replacements_string is not None:
+        print("ERROR: Please enter a valid replacement string or a file with valid json! (r=..., repl_f=...)")
+        print("String must be in json format. Keys are the replace regex and values are the replacements")
+        exit(0)
 
     create_from_template(p_template_name, replacements)
 

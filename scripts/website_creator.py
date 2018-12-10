@@ -48,8 +48,8 @@ def templates(show_structure=False):
 def reset():
     import os
     import shutil
-    reset = input("Do you really want to delete content of: %s (yes/no)" % Paths.Website.PROJECT_PATH)
-    if reset == "yes":
+    reset_content = input("Do you really want to delete content of: %s (yes/no)" % Paths.Website.PROJECT_PATH)
+    if reset_content == "yes":
         for the_file in os.listdir(Paths.Website.PROJECT_PATH):
             file_path = os.path.join(Paths.Website.PROJECT_PATH, the_file)
             try:
@@ -66,7 +66,7 @@ def print_help():
 
 
 def print_init_help():
-    pass # TODO
+    pass    # TODO
 
 
 def intersects(l1, l2):

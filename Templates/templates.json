@@ -1,7 +1,8 @@
 {
   "default": {
     "dev": {
-      "index.html": "index.html"
+      "index.html": "index.html",
+      "build_configs.json": "build_configs.json"
     },
     "release": {
 
@@ -17,7 +18,8 @@
         }
       },
       "Templates": {},
-      "Scripts": {}
+      "Scripts": {},
+      "build_configs.json": "build_configs.json"
     },
     "release": {}
   }
