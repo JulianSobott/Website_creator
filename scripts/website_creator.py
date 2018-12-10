@@ -38,7 +38,7 @@ def init(template="default", website_name=None):
 
 
 def templates(show_structure=False):
-    Project_templates.print_templates(show_structure)
+    Template_parser.print_templates(Paths.Tool.ABS_TEMPLATES_JSON_PATH, show_structure)
     print("Type --templates --structure to view also their structure")
 
 
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     """End"""
     help_arg = ["--help", "-h", "?"]
     init_arg = ["init", "--init"]
-    opt_template_arg = ["template"]
+    opt_template_arg = ["template", "t"]
     opt_website_name_arg = ["name"]
     templates_arg = ["--templates"]
 
@@ -110,14 +110,14 @@ if __name__ == "__main__":
         exit(0)
 
     if intersects(init_arg, all_args):
-        if intersects(help_arg, all_args):
+        if intersects(help_arg, all_args) or len(all_args) == 1:
             print_init_help()
             exit(0)
         p_template = get_optional_parameter(opt_template_arg, all_args)
         p_website_name = get_optional_parameter(opt_website_name_arg, all_args)
         opt_args = {}
         if p_template == "?":
-            Project_templates.print_templates()
+            Template_parser.print_templates(Paths.Tool.ABS_TEMPLATES_JSON_PATH)
             exit(0)
         elif p_template:
             opt_args["template"] = p_template

@@ -23,10 +23,11 @@ __all__ = ["create_from_template"]
 def create_from_template(template_name, replacements={}):
     template = get_template(template_name)
     root_path = Paths.Website.ABS_DEV_PATH
-    create_recursively(template["Structure"], root_path, replacements, template_name)
+    templates_src_path = Paths.Website.ABS_TEMPLATES_PATH
+    create_recursively(template["Structure"], root_path, replacements, template_name, templates_src_path)
 
 
-def create_recursively(json_data, root_path, replacements, template_name):
+def create_recursively(json_data: dict, root_path: str, replacements: dict, template_name: str, templates_src_path):
     for entry in json_data.keys():
         name, extension = os.path.splitext(entry)
         name = replace_placeholders(name, replacements, is_file_name=True)
@@ -36,12 +37,12 @@ def create_recursively(json_data, root_path, replacements, template_name):
                 os.mkdir(dir_path)
             except FileExistsError as e:
                 logger.warning(e)
-            create_recursively(json_data[entry], dir_path, replacements, template_name)
+            create_recursively(json_data[entry], dir_path, replacements, template_name, templates_src_path)
         else:
             src_path = json_data[entry]
             abs_dest_path = os.path.join(root_path, name + extension)
             if len(src_path) > 0:
-                abs_src_path = os.path.join(Paths.Website.ABS_TEMPLATES_PATH, template_name, src_path)
+                abs_src_path = os.path.join(templates_src_path, template_name, src_path)
                 try:
                     if len(replacements) > 0:
                         with open(abs_src_path, "r") as src_file:
@@ -73,12 +74,12 @@ def replace_placeholders(text, replacements, is_file_name=False):
 
 
 def get_template(name):
-    all_templates = get_all_templates()
+    all_templates = get_all_templates(Paths.Website.ABS_TEMPLATES_JSON_PATH)
     return all_templates[name]
 
 
-def get_all_templates():
-    with open(Paths.Website.ABS_TEMPLATES_JSON_PATH, "r") as templates_file:
+def get_all_templates(full_json_path):
+    with open(full_json_path, "r") as templates_file:
         templates = json.load(templates_file)
     return templates
 
@@ -92,12 +93,12 @@ def read_replacements_file(file_path):
     return replacements
 
 
-def print_templates(show_structure=False):
+def print_templates(full_json_path, show_structure=False):
     if show_structure:
-        with open(Paths.Website.ABS_TEMPLATES_JSON_PATH, "r") as templates_file:
+        with open(full_json_path, "r") as templates_file:
             print(templates_file.read())
     else:
-        templates = get_all_templates()
+        templates = get_all_templates(full_json_path)
         print(list(templates.keys()))
 
 
@@ -113,7 +114,7 @@ def print_templates_help():
                  "\tNOTE: the replacement argument is optional\n\n"
                  "Following templates are available:")
     print(help_text)
-    print_templates()
+    print_templates(Paths.Website.ABS_TEMPLATES_JSON_PATH)
     print("Type --templates --structure: To view the detailed structure of all templates")
 
 
@@ -129,7 +130,7 @@ def console_input(all_args):
         exit(0)
 
     if intersects(templates_structure_arg, all_args):
-        print_templates(True)
+        print_templates(Paths.Website.ABS_TEMPLATES_JSON_PATH, True)
         exit(0)
     p_template_name = get_optional_parameter(opt_template_name_arg, all_args)
 
@@ -137,7 +138,7 @@ def console_input(all_args):
     if p_template_name not in all_templates.keys():
         print("ERROR: Please enter a valid template name! (name=...)")
         print("Choose one of the following: ", end="")
-        print_templates()
+        print_templates(Paths.Website.ABS_TEMPLATES_JSON_PATH)
         exit(0)
 
     p_template_replacements_string = get_optional_parameter(opt_template_replacements_string_arg, all_args)
