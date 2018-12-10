@@ -13,6 +13,7 @@ import sys
 
 from Logging import logger
 import Project_templates
+import Template_parser
 import Paths
 
 DESCRIPTION = \
@@ -22,7 +23,10 @@ DESCRIPTION = \
     "  --help, -h, ?:\tprints help.\n" \
     "  init [template=[template_name]]: Initializes inside an empty folder a new project\n" \
                "\t\toptionally name the template name\n" \
-               "\t\tTo view all available templates type --templates\n"\
+               "\t\t[template=?: To view all available project templates\n" \
+    "  --templates [--help, -h, ?]: To get a more detailed description about templates\n" \
+               "\t+ [template_name]: Create all files and folders defined in templates.json\n" \
+               "\t+ [replacements]: Either a path to a .json file with replacements, or a string in json format\n"\
     \
     "\n"
 
@@ -61,6 +65,10 @@ def print_help():
     print(DESCRIPTION)
 
 
+def print_init_help():
+    pass # TODO
+
+
 def intersects(l1, l2):
     return len(list(set(l1) & set(l2))) > 0
 
@@ -88,7 +96,6 @@ if __name__ == "__main__":
     opt_template_arg = ["template"]
     opt_website_name_arg = ["name"]
     templates_arg = ["--templates"]
-    templates_structure_arg = ["--structure"]
 
     num_args = len(sys.argv) - 1
     all_args = []
@@ -98,26 +105,28 @@ if __name__ == "__main__":
         print_help()
         exit(0)
 
-    if intersects(help_arg, all_args):
+    if intersects(help_arg, list(all_args[0])):
         print_help()
         exit(0)
 
     if intersects(init_arg, all_args):
+        if intersects(help_arg, all_args):
+            print_init_help()
+            exit(0)
         p_template = get_optional_parameter(opt_template_arg, all_args)
         p_website_name = get_optional_parameter(opt_website_name_arg, all_args)
         opt_args = {}
-        if p_template:
+        if p_template == "?":
+            Project_templates.print_templates()
+            exit(0)
+        elif p_template:
             opt_args["template"] = p_template
         if p_website_name:
             opt_args["website_name"] = p_website_name
         init(**opt_args)
 
     if intersects(templates_arg, all_args):
-        if intersects(templates_structure_arg, all_args):
-            p_show_structure = True
-        else:
-            p_show_structure = False
-        templates(p_show_structure)
+        Template_parser.console_input(all_args)
 
     """DEBUG"""
     if intersects(reset_arg, all_args):

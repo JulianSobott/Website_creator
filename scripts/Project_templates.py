@@ -68,3 +68,4 @@ def print_templates(show_structure=False):
         templates = get_all_templates()
         print(list(templates.keys()))
 
+
