@@ -15,6 +15,8 @@ from Logging import logger
 import Project_templates
 import Template_parser
 import Paths
+import Data_parser
+
 
 DESCRIPTION = \
     __file__ + "\n"\
@@ -102,6 +104,8 @@ if __name__ == "__main__":
     opt_website_name_arg = ["name"]
     templates_arg = ["--templates"]
     templates_structure_arg = ["--structure"]
+    parse_data_arg = ["--parse-data"]
+    opt_parse_data_path_arg = ["path", "--path"]
 
     num_args = len(sys.argv) - 1
     all_args = []
@@ -137,6 +141,13 @@ if __name__ == "__main__":
 
     if intersects(templates_arg, all_args):
         Template_parser.console_input(all_args)
+
+    if intersects(parse_data_arg, all_args):
+        json_src_path = get_optional_parameter(opt_parse_data_path_arg, all_args)
+        if json_src_path is None:
+            json_src_path = Paths.Website.ABS_DEFAULT_SRC_JSON_PATH
+        Data_parser.execute_parser(json_src_path)
+
 
     """DEBUG"""
     if intersects(reset_arg, all_args):
