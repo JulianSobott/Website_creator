@@ -66,7 +66,12 @@ def print_help():
 
 
 def print_init_help():
-    pass    # TODO
+    print("To init a new project follow these steps:\n"
+          "1. Create an empty folder and cd to it\n"
+          "2. Type: (A '*' marks optional arguments and shall not be typed)\n"
+          "\tinit t=[template_name] *name=[website_name]\n"
+          "\tTo view all available templates write t=? *--structure (*to view the detailed structure)\n\n"
+          "3. When everything was created successfully go to your projects dev folder and start your website.")
 
 
 def intersects(l1, l2):
@@ -96,6 +101,7 @@ if __name__ == "__main__":
     opt_template_arg = ["template", "t"]
     opt_website_name_arg = ["name"]
     templates_arg = ["--templates"]
+    templates_structure_arg = ["--structure"]
 
     num_args = len(sys.argv) - 1
     all_args = []
@@ -117,7 +123,11 @@ if __name__ == "__main__":
         p_website_name = get_optional_parameter(opt_website_name_arg, all_args)
         opt_args = {}
         if p_template == "?":
-            Template_parser.print_templates(Paths.Tool.ABS_TEMPLATES_JSON_PATH)
+            if intersects(templates_structure_arg, all_args):
+                structure = True
+            else:
+                structure = False
+            Template_parser.print_templates(Paths.Tool.ABS_TEMPLATES_JSON_PATH, structure)
             exit(0)
         elif p_template:
             opt_args["template"] = p_template
