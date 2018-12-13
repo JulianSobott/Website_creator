@@ -13,11 +13,26 @@ import json
 import os
 import shutil
 import re
+import sys
 
 import Paths
 from Logging import logger
+from CMD import intersects, get_optional_parameter
 
 __all__ = ["create_from_template"]
+
+DESCRIPTION = (
+    "\n"
+    "Template_parser.py Create from template:\n"
+    "Templates are an easy way to fasten your creation of file structures.\n"
+    "You can define a new template in templates.json\n"
+    "For more information about creating templates view the docs.\n"
+    "To create files and folders from an existing add the following arguments:\n"
+    "  name, t=[template_name]: Where [template_name] is the name defined in templates.json\n"
+    "  {repl_f, replace_file=[json_file_path]}: [json_file_path] is a path to a json file with the replacements\n"
+    "  {r, repl_s, replace_string=[replace_string]}: [replace_string] is a json formatted string\n"
+    "  {--structure}: To view the detailed structure of all templates\n"
+)
 
 
 def create_from_template(template_name, replacements={}):
@@ -102,23 +117,17 @@ def print_templates(full_json_path, show_structure=False):
         print(list(templates.keys()))
 
 
-def print_templates_help():
-    help_text = ("Templates are an easy way to fasten your creation of file structures.\n"
-                 "You can define a new template in templates.json\n"
-                 "For more information about creating templates view the docs.\n"
-                 "To create from an existing: Type --templates with following arguments:\n"
-                 "\tname, t =[template_name]: Where [template_name] is the name defined in templates.json\n"
-                 "\trepl_f, replace_file=[json_file_path]: [json_file_path] "
-                 "is a path to a json file with the replacements\n"
-                 "\tr, repl_s, replace_string=[replace_string]: [replace_string] is a json formatted string\n"
-                 "\tNOTE: the replacement argument is optional\n\n"
-                 "Following templates are available:")
-    print(help_text)
-    print_templates(Paths.Website.ABS_TEMPLATES_JSON_PATH)
-    print("Type --templates --structure: To view the detailed structure of all templates")
+def print_help():
+    print(DESCRIPTION)
+    try:
+        print("Following templates are available: ", end="")
+        print_templates(Paths.Website.ABS_TEMPLATES_JSON_PATH)
+    except FileNotFoundError:
+        print("There are no templates currently available!\n"
+              "You first need to create the file 'Templates/templates.json' and add a template\n")
 
 
-def console_input(all_args):
+def handle_sys_arguments(all_args):
     help_arg = ["--help", "-h", "?"]
     opt_template_name_arg = ["name", "t"]
     opt_template_replacements_file_arg = ["repl_f", "replace_file"]
@@ -126,12 +135,13 @@ def console_input(all_args):
     templates_structure_arg = ["--structure"]
 
     if intersects(help_arg, all_args) or len(all_args) == 1:
-        print_templates_help()
+        print_help()
         exit(0)
 
     if intersects(templates_structure_arg, all_args):
         print_templates(Paths.Website.ABS_TEMPLATES_JSON_PATH, True)
         exit(0)
+
     p_template_name = get_optional_parameter(opt_template_name_arg, all_args)
 
     all_templates = get_all_templates()
@@ -163,21 +173,20 @@ def console_input(all_args):
     create_from_template(p_template_name, replacements)
 
 
-def intersects(l1, l2):
-    return len(list(set(l1) & set(l2))) > 0
-
-
-def get_optional_parameter(parameter_names: list, all_arguments: list):
-    """optional parameters are arguments which are set with [parameter]=[value]"""
-    for argument in all_arguments:
-        for parameter_name in parameter_names:
-            if parameter_name in argument:
-                if "=" in argument:
-                    return argument.split("=")[1]
-
-    return None
-
-
 if __name__ == '__main__':
-    """DEBUG"""
-    create_from_template("t2", {"tutorial_name": "Python"})
+    help_arg = ["--help", "-h", "?"]
+    num_args = len(sys.argv) - 1
+    all_args = []
+    if num_args > 0:
+        all_args = sys.argv[1:]
+    else:
+        print_help()
+        exit(0)
+
+    if intersects(help_arg, all_args) or len(all_args) == 0:
+        print_help()
+        exit(0)
+
+    else:
+        all_args.append("--templates")
+        handle_sys_arguments(all_args)
