@@ -94,9 +94,13 @@ def get_template(name):
 
 
 def get_all_templates(full_json_path):
-    with open(full_json_path, "r") as templates_file:
-        templates = json.load(templates_file)
-    return templates
+    try:
+        with open(full_json_path, "r") as templates_file:
+            templates = json.load(templates_file)
+        return templates
+    except FileNotFoundError:
+        logger.warning("No template file found in: %s", full_json_path)
+        return {}
 
 
 def read_replacements_file(file_path):
@@ -144,7 +148,16 @@ def handle_sys_arguments(all_args):
 
     p_template_name = get_optional_parameter(opt_template_name_arg, all_args)
 
-    all_templates = get_all_templates()
+    all_templates = get_all_templates(Paths.Website.ABS_TEMPLATES_JSON_PATH)
+    if len(all_templates) == 0:
+        print("Create a template file first!")
+        exit(-1)
+
+    if p_template_name == "?":
+        print("Following templates are available: ", end="")
+        print_templates(Paths.Website.ABS_TEMPLATES_JSON_PATH)
+        exit(0)
+
     if p_template_name not in all_templates.keys():
         print("ERROR: Please enter a valid template name! (name=...)")
         print("Choose one of the following: ", end="")

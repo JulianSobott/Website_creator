@@ -1,0 +1,9 @@
+{
+  "EXAMPLE":{
+    "attributes": {
+      "type": "web",
+      "replaceables": ["site_name"]
+    },
+    "Structure": {}
+  }
+}

@@ -12,13 +12,14 @@
 import json
 import os
 import sys
+import shutil
 
 from Logging import logger
 import Paths
 from CMD import intersects, get_optional_parameter
 
 DESCRIPTION = (
-    "\nData_parser.py Parse data to html:\n"
+    "\nData_parser.py Parses data to html:\n"
     "This tool is used to separate data from html.\n"
     "To do so define your data in a json file. "
     "Where each key is the name of the string that is replaced by its value.\n"
@@ -41,14 +42,25 @@ def parse_json_to_html(json_file_path, template_html_path, html_file_path):
 
     filled_html_text = gen_html_text.format(**data)
 
+    directory = os.path.split(html_file_path)[0]
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
     with open(html_file_path, "w+") as filled_html_file:
         filled_html_file.write(filled_html_text)
     print("New file created: " + html_file_path)
 
 
 def execute_parser(src_json_file_path):
+    """File structure: (All paths are relative to dev folder)
+    {
+        "python_tutorial": ["json file path", "html template path", "destination html file"],
+        "...": ["...", "...", "..."]
+    }
+    """
     try:
         with open(src_json_file_path, "r") as src_json_file:
+            logger.debug(src_json_file_path)
             data = json.load(src_json_file)
     except FileNotFoundError:
         print("ERROR: File %s does not exist! Please create this file or specify a path: path=..." % src_json_file_path)
@@ -68,7 +80,7 @@ def print_help():
 def handle_sys_arguments(all_args):
     opt_parse_data_path_arg = ["path", "--path"]
     help_arg = ["--help", "-h", "?"]
-    if intersects(help_arg, all_args) or len(all_args) == 1:
+    if intersects(help_arg, all_args):
         print_help()
         exit(0)
 
