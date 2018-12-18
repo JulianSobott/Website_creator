@@ -17,6 +17,7 @@ import Project_templates
 import Template_parser
 import Setup
 import Data_parser
+import Custom
 from CMD import intersects, get_optional_parameter
 
 
@@ -31,6 +32,7 @@ DESCRIPTION = (
     "  --templates name=[template_name] {r, repl_f=[replaceables]}: "
                "Create all files and folders defined in templates.json\n"
     "  --parse-data {path=[json_src_path]}: Parses all data to html, defined in json_src_path\n"
+    "  --custom, -c {args}: Calls self defined functions in folder Scripts"
     "\n"
 )
 
@@ -44,6 +46,7 @@ if __name__ == "__main__":
     init_arg = ["init", "--init"]
     templates_arg = ["--templates"]
     parse_data_arg = ["--parse-data"]
+    custom_arg = ["--custom", "-c"]
 
     num_args = len(sys.argv) - 1
     all_args = []
@@ -65,6 +68,8 @@ if __name__ == "__main__":
 
     elif intersects(templates_arg, all_args):
         Template_parser.handle_sys_arguments(all_args)
+    elif intersects(custom_arg, all_args):
+        Custom.handle_sys_arguments(all_args)
     else:
         print_help()
 

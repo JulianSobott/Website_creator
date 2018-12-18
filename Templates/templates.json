@@ -21,7 +21,8 @@
         "templates.json": "website_includes/templates.json"
       },
       "Scripts": {
-        "data2html_actions.json": "website_includes/data2html_actions.json"
+        "data2html_actions.json": "website_includes/data2html_actions.json",
+        "Custom.py": "website_includes/Custom.py"
       },
       "build_configs.json": "website_includes/build_configs.json"
     },

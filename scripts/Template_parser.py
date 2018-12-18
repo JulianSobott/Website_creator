@@ -40,12 +40,13 @@ def create_from_template(template_name, replacements={}):
     root_path = Paths.Website.ABS_DEV_PATH
     templates_src_path = Paths.Website.ABS_TEMPLATES_PATH
     create_recursively(template["Structure"], root_path, replacements, template_name, templates_src_path)
+    print("Finished creating template structure")
 
 
 def create_recursively(json_data: dict, root_path: str, replacements: dict, template_name: str, templates_src_path):
     for entry in json_data.keys():
         name, extension = os.path.splitext(entry)
-        name = replace_placeholders(name, replacements, is_file_name=True)
+        name = replace_placeholders(name, replacements, is_file_name=False)
         if len(extension) == 0:
             dir_path = os.path.join(root_path, name)
             try:

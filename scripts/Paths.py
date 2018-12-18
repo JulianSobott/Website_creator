@@ -27,3 +27,5 @@ class Website:
     ABS_TEMPLATES_JSON_PATH = os.path.join(ABS_TEMPLATES_PATH, "templates.json").replace('\\', '/')
 
     ABS_DEFAULT_SRC_JSON_PATH = os.path.join(ABS_DEV_PATH, "Scripts/data2html_actions.json").replace('\\', '/')
+
+    ABS_CUSTOM_SCRIPT_PATH = os.path.join(ABS_DEV_PATH, "Scripts/Custom.py").replace('\\', '/')
