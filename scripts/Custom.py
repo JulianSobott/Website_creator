@@ -38,10 +38,7 @@ def handle_sys_arguments(all_args):
 
     custom_args = [Paths.Website.ABS_CUSTOM_SCRIPT_PATH]
     custom_args += all_args[1:]
-    print(custom_args)
     subprocess.run(custom_args, shell=True)
-
-
 
 
 def print_help():

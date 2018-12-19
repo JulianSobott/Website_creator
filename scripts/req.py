@@ -48,6 +48,8 @@ if __name__ == "__main__":
     parse_data_arg = ["--parse-data"]
     custom_arg = ["--custom", "-c"]
 
+    print("")
+
     num_args = len(sys.argv) - 1
     all_args = []
     if num_args > 0:
@@ -72,4 +74,6 @@ if __name__ == "__main__":
         Custom.handle_sys_arguments(all_args)
     else:
         print_help()
+
+    print("")
 

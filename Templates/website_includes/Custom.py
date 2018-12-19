@@ -16,6 +16,7 @@ Add custom argument:
 
 """
 import sys
+from CMD import *   # Add CMD.py file with intersects function
 
 DESCRIPTION = (
     "custom.py\n"
@@ -41,21 +42,6 @@ def handle_sys_arguments(all_args):
 
 def print_help():
     print(DESCRIPTION)
-
-
-def intersects(l1, l2):
-    return len(list(set(l1) & set(l2))) > 0
-
-
-def get_optional_parameter(parameter_names: list, all_arguments: list):
-    """optional parameters are arguments which are set with [parameter]=[value]"""
-    for argument in all_arguments:
-        for parameter_name in parameter_names:
-            if parameter_name in argument:
-                if "=" in argument:
-                    return argument.split("=")[1]
-
-    return None
 
 
 if __name__ == "__main__":

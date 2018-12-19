@@ -19,8 +19,7 @@ def get_optional_parameter(parameter_names: list, all_arguments: list):
     """optional parameters are arguments which are set with [parameter]=[value]"""
     for argument in all_arguments:
         for parameter_name in parameter_names:
-            if parameter_name in argument:
-                if "=" in argument:
-                    return argument.split("=")[1]
+            if "=" in argument and parameter_name == argument.split("=")[0]:
+                return argument.split("=")[1]
 
     return None
