@@ -40,7 +40,8 @@ def parse_json_to_html(json_file_path, template_html_path, html_file_path):
     with open(template_html_path, "r") as gen_html_file:
         gen_html_text = "".join(gen_html_file.readlines())
 
-    filled_html_text = gen_html_text.format(**data)
+    filled_html_text = create_final_html(gen_html_text, data)
+    #filled_html_text = gen_html_text.format(**data)
 
     directory = os.path.split(html_file_path)[0]
     if not os.path.exists(directory):
@@ -50,6 +51,13 @@ def parse_json_to_html(json_file_path, template_html_path, html_file_path):
         filled_html_file.write(filled_html_text)
     print("New file created: " + html_file_path)
 
+
+def create_final_html(gen_html, replaceables):
+    pass
+
+
+def parse_executable_html(code, replaceables):
+    pass
 
 def execute_parser(src_json_file_path):
     """File structure: (All paths are relative to dev folder)
