@@ -21,7 +21,7 @@ from CMD import intersects, get_optional_parameter
 
 DESCRIPTION = (
     "\n"
-    "Setup.py Init:\n"
+    "InitProject.py Init:\n"
     "This tool initializes the project folder.\n"
     "To init a new project follow these steps:\n"
     "  1. Create an empty folder and cd to it\n"

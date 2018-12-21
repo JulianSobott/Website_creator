@@ -15,7 +15,7 @@ import sys
 from Logging import logger
 import Project_templates
 import Template_parser
-import Setup
+import InitProject
 import Data_parser
 import Custom
 import Release
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         exit(0)
 
     if intersects(init_arg, all_args):
-        Setup.handle_sys_arguments(all_args)
+        InitProject.handle_sys_arguments(all_args)
 
     elif intersects(parse_data_arg, all_args):
         Data_parser.handle_sys_arguments(all_args)
