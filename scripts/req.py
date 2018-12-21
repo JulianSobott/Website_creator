@@ -18,6 +18,8 @@ import Template_parser
 import Setup
 import Data_parser
 import Custom
+import Release
+import FileWatcher
 from CMD import intersects, get_optional_parameter
 
 
@@ -47,6 +49,8 @@ if __name__ == "__main__":
     templates_arg = ["--templates"]
     parse_data_arg = ["--parse-data"]
     custom_arg = ["--custom", "-c"]
+    release_arg = ["--release", "-r"]
+    auto_release_arg = ["--auto-release", "-ar"]
 
     print("")
 
@@ -72,6 +76,10 @@ if __name__ == "__main__":
         Template_parser.handle_sys_arguments(all_args)
     elif intersects(custom_arg, all_args):
         Custom.handle_sys_arguments(all_args)
+    elif intersects(release_arg, all_args):
+        Release.handle_sys_arguments(all_args)
+    elif intersects(auto_release_arg, all_args):
+        FileWatcher.handle_sys_arguments(all_args)
     else:
         print_help()
 

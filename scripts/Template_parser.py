@@ -52,7 +52,7 @@ def create_recursively(json_data: dict, root_path: str, replacements: dict, temp
             try:
                 os.mkdir(dir_path)
             except FileExistsError as e:
-                logger.warning(e)
+                pass
             create_recursively(json_data[entry], dir_path, replacements, template_name, templates_src_path)
         else:
             src_path = json_data[entry]
