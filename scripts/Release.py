@@ -44,18 +44,27 @@ import Paths
 
 ENCODING = "utf-8"
 
-DESCRIPTION = \
-    "@name:\t" + __file__ + "\n"\
-    "@brief:\t" + "This script merges html files with includes together\n" \
-    "@use:\t" + "Following arguments are necessary\n\n"\
-    "1. Project path: All other paths will be relative to this\n" \
-    "2. Start file path: This file is the file which contains the include statements. (Main file)\n" \
-    "3. Final file path: This file will be created and contains the final/merged html\n"\
+DESCRIPTION = (
+    "Release.py\n"
+    "This script creates/copies all relevant files into the release folder.\n" 
+    "Following arguments are optional:\n\n"
+    "  {src=[src_path]}: You can add a path relative to the dev path. Only files inside this paths are handled.\n"
+    "\n\nIncluding and exporting js/html files:\n"
+    "Note: Paths are relative to file location!\n\n"
+    "To INCLUDE a HTML file add the following element inside your main html file:\n"
+    "\t<include \"[relative file path]\">\n"
+    "To add your HTML file to the release add the following at the very top of your html file:\n"
+    "\t<export>\n"
     "\n"
+    "To INCLUDE a JS file add the following element inside your main js file:\n"
+    "\t#include \"[relative file path]\"\n"
+    "To add your JS file to the release add the following at the very top of your js file:\n"
+    "\t#export")
 
-include_html_rex = "<include\s\"([\w_\\\/.-]*.html)\">"
+
+include_html_rex = "<include\\s\"([\\w_\\\\\\/.-]*.html)\">"
 export_html_rex = "<export>"
-include_js_rex = "#include\s\"([\w_\\\/.-]*.js)\""
+include_js_rex = "#include\\s\"([\\w_\\\\\\/.-]*.js)\""
 export_js_rex = "#export"
 
 IGNORE_EXTENSIONS = [".sass", ".bat"]
@@ -64,6 +73,8 @@ JS_EXTENSIONS = [".js"]
 IMPORT_EXTENSIONS = HTML_EXTENSIONS + JS_EXTENSIONS
 
 js_minimize_level = 0
+
+error_occurred = False
 
 
 def create_release(just_imports=False, clear_release_first=False, optimized_code=False, src_path=None):
@@ -89,7 +100,10 @@ def create_release(just_imports=False, clear_release_first=False, optimized_code
                 file_path = os.path.join(root, file_name)
                 handle_file(file_path, Paths.Website.PROJECT_PATH, extension)
 
-    logger.info("Successfully released!")
+    if not error_occurred:
+        logger.info("Successfully released!")
+    else:
+        logger.info("Release may be incorrect! Check the error log.")
 
 
 def clear_release():
@@ -137,11 +151,13 @@ def is_export_file(full_file_path):
 
 def create_export_file(abs_file_path, destination_folder_path, file_extension):
     """Insert all includes and write the final content to the release file"""
+    global error_occurred
     final_text = include_all_includes(abs_file_path)
     if file_extension in JS_EXTENSIONS:
         final_minimized_text = minimize_js(final_text, level=js_minimize_level)
         if not final_minimized_text:
             logger.warning("Compilation error in your js. Check your js file: %s", abs_file_path)
+            error_occurred = True
             final_minimized_text = final_text
     else:
         final_minimized_text = final_text
@@ -152,11 +168,14 @@ def create_export_file(abs_file_path, destination_folder_path, file_extension):
             final_file.write(final_minimized_text)
     except PermissionError:
         logger.error("Error writing file: %s\n\tEnsure that the file is nowhere else open", final_file_path)
+        error_occurred = True
 
 
 def include_all_includes(rel_file_path):
+    global error_occurred
     if not os.path.isfile(rel_file_path):
         logger.error("ERROR: Included File does not exist: " + str(rel_file_path))
+        error_occurred = True
         return ""
 
     final_text = ""

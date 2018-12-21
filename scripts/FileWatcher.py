@@ -24,12 +24,13 @@ import Release
 import Paths
 from CMD import *
 
-DESCRIPTION = \
-    "@name:\t" + __file__ + "\n"\
-    "@brief:\t" + "Auto release on change\n" \
-    "@use:\t" + "Following arguments are necessary\n\n"\
-    "[Project path]\n" \
-    "\n"
+DESCRIPTION = (
+    "" + __file__ + "\n"
+    "This script automatically releases on file changes.\n"
+    "For more information about the release module view the docs." 
+    "Following arguments are optional:\n\n"
+    "  {src=[src_path]}: You can add a path relative to the dev path. Only files inside this paths are handled"
+    "\n")
 
 
 def start(src_path=None):
