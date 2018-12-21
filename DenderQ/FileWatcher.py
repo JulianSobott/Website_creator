@@ -37,7 +37,7 @@ def start(src_path=None):
     watch_path = Paths.Website.ABS_DEV_PATH
     if src_path:
         watch_path = os.path.join(watch_path, src_path)
-    Release.create_release(clear_release_first=True)
+    Release.create_release(src_path=src_path, clear_release_first=True)
     watcher = threading.Thread(target=watch_local_changes, args=(watch_path,), name="Watcher")
     watcher.start()
 
