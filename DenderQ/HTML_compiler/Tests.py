@@ -27,6 +27,12 @@ example_short_for_in = (
             "}\n"
         )
 
+example_for_to = (
+    "for i=0 to 10{\n"
+    "<p>{i}</p>\n"
+    "}\n"
+)
+
 
 class TestTokens(unittest.TestCase):
 
@@ -53,4 +59,10 @@ class TestHTML(unittest.TestCase):
                 "<p> 1th child</p>\n"
                 "}\n")
         self.assertEqual(html, correct_html)
+
+    def test_for_to(self):
+        html = parse_executable_html(example_for_to, {})
+        correct_html = (
+            ""
+        )
 

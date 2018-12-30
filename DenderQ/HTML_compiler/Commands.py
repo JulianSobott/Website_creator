@@ -15,6 +15,24 @@ from Logging import logger
 from Token_generator import Token
 
 
+def is_valid_grammar(order, tokens):
+    idx = 0
+    is_valid = True
+    for match in order:
+        try:
+            token = tokens[idx]
+        except IndexError:
+            is_valid = False
+            break
+        if not token.type == match[0] or not re.match(match[1], token.value):
+            is_valid = False
+            break
+        idx += 1
+    if is_valid:
+        return True
+    return False
+
+
 class ForInLoop:
     """
     for i, object in list {...}/
@@ -45,18 +63,7 @@ class ForInLoop:
                        (Token.REPLACEABLE, "\\{\\S*\\}")]
         orders = [order_long, order_short]
         for order in orders:
-            idx = 0
-            is_valid = True
-            for match in order:
-                try:
-                    token = tokens[idx]
-                except IndexError:
-                    is_valid = False
-                    break
-                if not token.type == match[0] or not re.match(match[1], token.value):
-                    is_valid = False
-                    break
-                idx += 1
+            is_valid = is_valid_grammar(order, tokens)
             if is_valid:
                 return True
         return False
@@ -81,55 +88,24 @@ class ForInLoop:
 class ForToLoop:
     """for i=start to end {...}"""
     def __init__(self, header_tokens, body_code_block):
-        if header_tokens[2].type == Token.SIGN:
-            self.has_counter = True
-            self.counter_name = header_tokens[1].value
-        else:
-            self.has_counter = False
-        if self.has_counter:
-            self.object_name = header_tokens[3].value
-        else:
-            self.object_name = header_tokens[1].value
-        self.list = header_tokens[-1]
+        self.counter_name = header_tokens[1].value
+        self.start_value = int(header_tokens[3].value)
+        self.end_value = int(header_tokens[5].value)
 
         self.code_block = body_code_block
-
-        self._current_idx = 0
 
     @staticmethod
     def is_valid_block(tokens):
         order = [(Token.KEYWORD, "for"), (Token.VARIABLE, "\\S*"), (Token.SIGN, "="), (Token.VARIABLE, "\\S*"),
-                      (Token.KEYWORD, "to"), (Token.VARIABLE, "[0-9]*")]
-        idx = 0
-        is_valid = True
-        for match in order:
-            try:
-                token = tokens[idx]
-            except IndexError:
-                is_valid = False
-                break
-            if not token.type == match[0] or not re.match(match[1], token.value):
-                is_valid = False
-                break
-            idx += 1
-        if is_valid:
-            return True
-        return False
+                 (Token.KEYWORD, "to"), (Token.VARIABLE, "[0-9]*")]
+        return is_valid_grammar(order, tokens)
 
     def to_html(self, replacements):
         html = ""
-        if self.list.type == Token.REPLACEABLE:
-            self.list = replacements[self.list.value[1:-1]]
-        else:
-            pass
-        idx = 0
-        for i in self.list:
+        for i in range(self.start_value, self.end_value):
             temp_replacements = replacements.copy()
-            temp_replacements[self.object_name] = str(i)
-            if self.has_counter:
-                temp_replacements[self.counter_name] = str(idx)
+            temp_replacements[self.counter_name] = str(i)
             html += self.code_block.to_html(temp_replacements)
-            idx += 1
         return html
 
 
@@ -197,6 +173,9 @@ class CodeBlock:
                 if ForInLoop.is_valid_block(header_tokens):
                     for_in_block = ForInLoop(header_tokens, body_code_block)
                     self.elements.append(for_in_block)
+                elif ForToLoop.is_valid_block(tokens):
+                    for_to_block = ForToLoop(header_tokens, body_code_block)
+                    self.elements.append(for_to_block)
 
             else:
                 code_block, idx_token_end = get_body_tokens(tokens)

@@ -178,7 +178,6 @@ def generate_tokens(code):
             tokens.append(token)
         tokens.append(Token("EOL", idx_line, (-1, -1), token_type=Token.END_OF_LINE))
         idx_line += 1
-    logger.debug(tokens_2_str(tokens))
     return tokens
 
 
