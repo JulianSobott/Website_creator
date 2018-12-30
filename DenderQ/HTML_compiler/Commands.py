@@ -71,7 +71,13 @@ class ForInLoop:
     def to_html(self, replacements):
         html = ""
         if self.list.type == Token.REPLACEABLE:
-            self.list = replacements[self.list.value[1:-1]]
+            try:
+                self.list = replacements[self.list.value[1:-1]]
+            except KeyError:
+                key = str(self.list.value[1:-1])
+                error_text = f"Key error! unknown key: '{key}' in replacements\n"
+                logger.error(key)
+                return error_text
         else:
             pass
         idx = 0

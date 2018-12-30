@@ -35,7 +35,7 @@ DESCRIPTION = (
                "Create all files and folders defined in templates.json\n"
     "  --parse-data {path=[json_src_path]}: Parses all data to html, defined in json_src_path\n"
     "  --custom, -c {args}: Calls self defined functions in folder Scripts\n"
-    "  --release, r {src=[src_folder]}: Creates all files (from_src) for release in release folder\n"
+    "  --release, -r {src=[src_folder]}: Creates all files (from_src) for release in release folder\n"
     "  --auto-release -ar {src=[src_folder]}: Like -r but constantly releases when a file changed"
     "\n"
 )

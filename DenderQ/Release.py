@@ -41,6 +41,7 @@ import requests
 from Logging import logger
 from CMD import *
 import Paths
+import HTML_compiler.EXE_HTML
 
 ENCODING = "utf-8"
 
@@ -161,6 +162,8 @@ def create_export_file(abs_file_path, destination_folder_path, file_extension):
             final_minimized_text = final_text
     else:
         final_minimized_text = final_text
+        if file_extension in HTML_EXTENSIONS:
+            final_minimized_text = HTML_compiler.EXE_HTML.parse_executable_html(final_minimized_text, {})
     file_name = os.path.split(abs_file_path)[1]
     final_file_path = os.path.join(destination_folder_path, file_name)
     try:
