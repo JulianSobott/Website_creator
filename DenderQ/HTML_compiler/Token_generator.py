@@ -87,12 +87,6 @@ class Line:
             working_idx += 1
             if not c.isspace():
                 idx_end += 1
-                if c == self.comma:
-                    if len(element) > 0:
-                        self.idx -= 1
-                        return element, (idx_start, idx_end - 1)
-                    else:
-                        return c, (idx_start, idx_end)
                 if c == self.open_curly_bracket:
                     if len(element) > 0 and element != "\\":
                         self.idx -= 1
@@ -114,6 +108,19 @@ class Line:
                             return c, (idx_start, idx_end)
                     elif start_replaceable:
                         return element + c, (idx_start, idx_end)
+                elif c in SIGNS:
+                    if len(element) > 0:
+                        self.idx -= 1
+                        return element, (idx_start, idx_end - 1)
+                    else:
+                        try:
+                            c_comb = c + working_text[working_idx ]
+                            if c_comb in SIGNS:
+                                self.idx += 1
+                                return c_comb, (idx_start, idx_end + 1)
+                        except IndexError:
+                            pass
+                        return c, (idx_start, idx_end)
                 element += c
         return element, (idx_start, idx_end)
 
