@@ -94,7 +94,7 @@ class Line:
                     else:
                         return c, (idx_start, idx_end)
                 if c == self.open_curly_bracket:
-                    if len(element) > 0:
+                    if len(element) > 0 and element != "\\":
                         self.idx -= 1
                         return element, (idx_start, idx_end - 1)
                     else:

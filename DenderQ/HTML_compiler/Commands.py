@@ -108,7 +108,7 @@ class Write:
             elif token.type == Token.END_OF_LINE:
                 html += "\n"
             else:
-                html += str(token.value)
+                html += str(token.value).replace("\\{", "{").replace("\\}", "}")
         html += "\n"
         return html
 

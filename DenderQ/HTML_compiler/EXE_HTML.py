@@ -15,7 +15,7 @@ from Commands import tokens_2_commands
 
 
 example_code_03 = (
-    "<< for i, child in {children}\n"
+    "\\{children\\}\n"
     "}\n"
 )
 
