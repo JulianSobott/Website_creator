@@ -25,8 +25,12 @@ example_code = (
 
 example_code_01 = (
     "for i, child in {children}{\n"
-    "<< <li {i}>{child}</li>\n"
+    ">> <li {i}>{child}</li>\n"
     "}\n")
+
+example_code_02 = (
+    "<p>{children}</p>"
+)
 
 
 class Text:
@@ -71,43 +75,47 @@ class Line:
         working_text = self.text[self.idx:].lstrip()
         working_idx = 0
         self.idx = self.idx + (len(self.text[self.idx:]) - len(working_text))
+        idx_start = self.idx
+        idx_end = self.idx - 1
         if len(working_text) == 0:
             raise StopIteration
         start_replaceable = False
+
         while not c.isspace() and working_idx < len(working_text):
             c = working_text[working_idx]
             self.idx += 1
             working_idx += 1
             if not c.isspace():
+                idx_end += 1
                 if c == self.comma:
                     if len(element) > 0:
                         self.idx -= 1
-                        return element
+                        return element, (idx_start, idx_end - 1)
                     else:
-                        return c
+                        return c, (idx_start, idx_end)
                 if c == self.open_curly_bracket:
                     if len(element) > 0:
                         self.idx -= 1
-                        return element
+                        return element, (idx_start, idx_end - 1)
                     else:
                         if len(working_text) <= working_idx + 1 or working_text[working_idx + 1].isspace():
                             if len(element) > 0:
                                 self.idx -= 1
-                                return element
+                                return element, (idx_start, idx_end - 1)
                             else:
-                                return c
+                                return c, (idx_start, idx_end)
                     start_replaceable = True
                 elif c == self.closed_curly_bracket:
                     if working_idx <= 0 or working_text[working_idx - 1].isspace():
                         if len(element) > 0:
                             self.idx -= 1
-                            return element
+                            return element, (idx_start, idx_end - 1)
                         else:
-                            return c
+                            return c, (idx_start, idx_end)
                     elif start_replaceable:
-                        return element + c
+                        return element + c, (idx_start, idx_end)
                 element += c
-        return element
+        return element, (idx_start, idx_end)
 
 
 class Token:
@@ -118,8 +126,10 @@ class Token:
     END_OF_LINE = 5
     REPLACEABLE = 6
 
-    def __init__(self, word, token_type=None):
+    def __init__(self, word, line_number, idx_columns, token_type=None):
         self.value = word
+        self.line_number = line_number
+        self.idx_columns = idx_columns  # tuple: (idx_start, idx_end)
         if token_type and self.CONSTANT <= token_type <= self.REPLACEABLE:
             self.type = token_type
         elif word in KEYWORDS:
@@ -130,7 +140,7 @@ class Token:
             self.type = self.SIGN
         elif word == "\n":
             self.type = self.END_OF_LINE
-        elif word[0] == "{" and word[:-1] == "}":
+        elif word[0] == "{" and word[-1] == "}":
             self.type = self.REPLACEABLE
         else:
             self.type = self.VARIABLE
@@ -145,17 +155,22 @@ class Token:
     def __str__(self):
         types = {Token.CONSTANT: "Constant", Token.VARIABLE: "Variable", Token.KEYWORD: "Keyword", Token.SIGN: "Sign",
                  Token.END_OF_LINE: "End of line", Token.REPLACEABLE: "Replaceable"}
-        return types[self.type] + ": " + str(self.value)
+        return types[self.type] + ": " + str(self.value) + " " + str(self.idx_columns)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 def generate_tokens(code):
     text = Text(code)
     tokens = []
+    idx_line = 0
     for line in text:
-        for word in Line(line):
-            token = Token(word)
+        for word, columns in Line(line):
+            token = Token(word, idx_line, columns)
             tokens.append(token)
-        tokens.append(Token("EOL", Token.END_OF_LINE))
+        tokens.append(Token("EOL", idx_line, (-1, -1), token_type=Token.END_OF_LINE))
+        idx_line += 1
     logger.debug(tokens_2_str(tokens))
     return tokens
 
