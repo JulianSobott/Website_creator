@@ -12,7 +12,7 @@
 import re
 
 from Logging import logger
-from Token_generator import Token
+from .Token_generator import Token
 
 
 def is_valid_grammar(order, tokens):
@@ -110,6 +110,7 @@ class ForToLoop:
 
 
 class IfStatement:
+    """if expression {...}"""
     pass
 
 
@@ -169,6 +170,7 @@ class CodeBlock:
             if first_token.type == Token.KEYWORD:
                 header_tokens, idx_end = get_header_tokens(tokens)
                 body_tokens, idx_token_end = get_body_tokens(tokens[idx_end:])
+                idx_token_end += idx_end - 1
                 body_code_block = CodeBlock(body_tokens)
                 if ForInLoop.is_valid_block(header_tokens):
                     for_in_block = ForInLoop(header_tokens, body_code_block)
@@ -178,9 +180,9 @@ class CodeBlock:
                     self.elements.append(for_to_block)
 
             else:
-                code_block, idx_token_end = get_body_tokens(tokens)
-                if Write.is_valid_block(code_block):
-                    writer = Write(code_block)
+                next_line, idx_token_end = get_next_line(tokens)
+                if Write.is_valid_block(next_line):
+                    writer = Write(next_line)
                     self.elements.append(writer)
             tokens = tokens[idx_token_end + 1:]
             if len(self.elements) == 0:
@@ -195,7 +197,7 @@ class CodeBlock:
 
 def cut_outer_eols(tokens):
     if len(tokens) == 0:
-        return tokens
+        return tokens, 0
     cut = 0
     try:
         if tokens[0].type == Token.END_OF_LINE:
@@ -230,15 +232,15 @@ def get_body_tokens(tokens):
     block_tokens = []
     tokens, cut = cut_outer_eols(tokens)
     idx_token_end += cut
+    is_in_brackets = False
     if tokens[0].value == "{":
         is_in_brackets = True
-    else:
-        is_in_brackets = False
-    if tokens[0].value == "<<":
-        write_block = True
-    else:
-        write_block = False
+    new_line = True
+    write_block = False
     for token in tokens:
+        if new_line and token.value == "<<":
+            write_block = True
+            new_line = False
         ignore_token = False
         if token.value == "{" and not write_block:
             if not is_in_brackets:
@@ -252,12 +254,27 @@ def get_body_tokens(tokens):
                 ignore_token = True
         if not ignore_token:
             block_tokens.append(token)
-        if write_block and num_open_brackets == 0 and is_in_brackets:
+        if not write_block and num_open_brackets == 0 and is_in_brackets:
             break
+        if token.type == Token.END_OF_LINE:
+            write_block = False
+            new_line = True
         idx_token_end += 1
     clean_block_tokens, cut = cut_outer_eols(block_tokens)
-    idx_token_end += cut + 1
+    idx_token_end += cut
     return clean_block_tokens, idx_token_end
+
+
+def get_next_line(tokens):
+    ret_tokens = []
+    tokens, idx_end = cut_outer_eols(tokens)
+    for token in tokens:
+        if token.type == Token.END_OF_LINE:
+            break
+        else:
+            ret_tokens.append(token)
+        idx_end += 1
+    return ret_tokens, idx_end
 
 
 def get_header_tokens(tokens):

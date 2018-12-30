@@ -53,7 +53,9 @@ def parse_json_to_html(json_file_path, template_html_path, html_file_path):
 
 
 def create_final_html(gen_html, replaceables):
-    pass
+    from HTML_compiler.EXE_HTML import parse_executable_html
+    html = parse_executable_html(gen_html, replaceables)
+    return html
 
 
 def parse_executable_html(code, replaceables):

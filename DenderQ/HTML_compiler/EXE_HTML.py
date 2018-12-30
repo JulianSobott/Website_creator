@@ -10,8 +10,8 @@
 
 """
 from Logging import logger
-from Token_generator import generate_tokens, tokens_2_str, example_code_02
-from Commands import tokens_2_commands
+from .Token_generator import generate_tokens
+from .Commands import tokens_2_commands
 
 
 example_code_04 = (

@@ -10,7 +10,7 @@
 
 """
 from Logging import logger
-from Keywords import KEYWORDS, SIGNS
+from .Keywords import KEYWORDS, SIGNS
 
 __all__ = ["generate_tokens", "tokens_2_str"]
 
@@ -46,9 +46,14 @@ class Text:
     def __next__(self):
         c = ""
         line = ""
-        while c not in self.new_line_c and self.idx < len(self.text):
-            c = self.text[self.idx]
+        working_text = self.text[self.idx:].lstrip()
+        working_idx = 0
+        self.idx = self.idx + (len(self.text[self.idx:]) - len(working_text))
+
+        while c not in self.new_line_c and working_idx < len(working_text):
+            c = working_text[working_idx]
             self.idx += 1
+            working_idx += 1
             if c not in self.new_line_c:
                 line += c
         if len(line) == 0:
