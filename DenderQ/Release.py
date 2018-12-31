@@ -13,7 +13,7 @@ create_release() is the relevant method.
 
 To INCLUDE a html file add the following element inside your main html file
 <include "[relative file path]">
-(regex: <include\s\"([\w_\\\/.-]*.html)\">)
+(regex: <include\s\"([\w\W_\\\/.-]*.html)\">)
 e.g.
 <include "includes/navbar.html">
 
@@ -65,9 +65,9 @@ DESCRIPTION = (
     "\t#export")
 
 
-include_html_rex = "<include\\s\"([\\w_\\\\\\/.-]*.html)\">"
+include_html_rex = "<include\\s\"([\\w\\W_\\\\\\/.-]*.html)\">"
 export_html_rex = "<export>"
-include_js_rex = "#include\\s\"([\\w_\\\\\\/.-]*.js)\""
+include_js_rex = "#include\\s\"([\\w\\W_\\\\\\/.-]*.js)\""
 export_js_rex = "#export"
 
 IGNORE_EXTENSIONS = [".sass", ".bat"]
