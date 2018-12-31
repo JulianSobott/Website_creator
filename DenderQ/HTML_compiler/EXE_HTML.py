@@ -30,7 +30,7 @@ def parse_executable_html(code, replaceables):
     tokens = generate_tokens(code)
     code_block = tokens_2_commands(tokens)
     html = code_block.to_html(replaceables)
-    logger.debug(html)
+    # logger.debug(html)
     return html
 
 

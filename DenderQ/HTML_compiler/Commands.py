@@ -139,11 +139,13 @@ class Write:
             for i in range(fill_spaces):
                 html += " "
             if token.type == Token.REPLACEABLE:
+                key = ""
                 try:
                     key = token.value[1:-1]
                     html += str(replacements[key])
                 except KeyError:
-                    logger.error("Replacement not found!")
+                    logger.error("Replacement not found! (%s)", key)
+                    html += str(key)
             elif token.type == Token.END_OF_LINE:
                 html += "\n"
             else:

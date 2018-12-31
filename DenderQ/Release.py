@@ -51,7 +51,9 @@ DESCRIPTION = (
     "Following arguments are optional:\n\n"
     "  {src=[src_path]}: You can add a path relative to the dev path. Only files inside this paths are handled.\n"
     "\n\nIncluding and exporting js/html files:\n"
-    "Note: Paths are relative to file location!\n\n"
+    "Note: Paths are by default relative to the dev folder!\n"
+    "\tTo make them relative to the current file prepend './' to the path.\n"
+    "\tPaths may not contain whitespaces!\n\n"
     "To INCLUDE a HTML file add the following element inside your main html file:\n"
     "\t<include \"[relative file path]\">\n"
     "To add your HTML file to the release add the following at the very top of your html file:\n"
@@ -197,7 +199,13 @@ def include_all_includes(rel_file_path):
                     idx_start_file = occurrence.regs[1][0]
                     idx_end_file = occurrence.regs[1][1]
                     include_file_path = line[idx_start_file:idx_end_file]
-                    full_include_file_path = os.path.join(folder_path, include_file_path)
+                    if include_file_path.startswith("./"):      # path is relative to file
+                        include_file_path = include_file_path[2:]
+                        os.chdir(os.path.join(Paths.Website.ABS_DEV_PATH, folder_path))
+                        full_include_file_path = os.path.realpath(include_file_path)
+                        os.chdir(Paths.Website.PROJECT_PATH)
+                    else:       # path is relative to dev folder
+                        full_include_file_path = os.path.join(Paths.Website.ABS_DEV_PATH, include_file_path)
                     final_text += include_all_includes(full_include_file_path)
                     idx_start_line = idx_end_reg
                 final_text += line[idx_start_line:]
@@ -243,12 +251,5 @@ def handle_sys_arguments(all_args):
 
 
 if __name__ == "__main__":
-    num_args = len(sys.argv) - 1
-    if num_args > 0:
-        all_args = sys.argv[1:]
-    else:
-        print_help()
-        exit(0)
-
-    p_project_path = all_args[0]
-    create_release(p_project_path, clear_release_first=True)
+    all_args = ["src=Web"]
+    handle_sys_arguments(all_args)
