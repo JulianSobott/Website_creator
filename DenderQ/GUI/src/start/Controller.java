@@ -16,6 +16,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import ui.PythonCommunicator;
 
 public class Controller{
 
@@ -26,26 +27,7 @@ public class Controller{
     @FXML
     public void create_new_project(ActionEvent event){
         System.out.println("Pressed create new project");
-        try{
-            String projectDir = System.getProperty("user.dir");
-            String reqPath = "..\\req.py";
-            Path absPath = Paths.get(projectDir, reqPath);
-            ProcessBuilder pb = new ProcessBuilder("python", absPath.toString(), "?");
-            Process process = pb.start();
-
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(process.getInputStream()));
-            BufferedReader errorOut = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            String line;
-            while ( (line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
-            while ( (line = errorOut.readLine()) != null) {
-                System.out.println(line);
-            }
-        }catch(Exception e){
-            e.printStackTrace();
-        }
+        PythonCommunicator.createProject();
     }
 
     @FXML
