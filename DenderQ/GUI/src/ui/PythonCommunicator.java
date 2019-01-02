@@ -1,5 +1,8 @@
 package ui;
 
+import utils.LocPaths;
+import utils.Logging;
+
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,10 +14,10 @@ public class PythonCommunicator {
 
 
     private static Output call(String commands){
-        String projectDir = System.getProperty("user.dir");
-        String reqPath = "..\\req.py";
-        Path absPath = Paths.get(projectDir, reqPath);
-        List<String> args = new ArrayList<String>();
+        Path projectPath = LocPaths.getProjectPath();
+        String reqName = "req.py";
+        Path absPath = Paths.get(projectPath.toString(), reqName);
+        List<String> args = new ArrayList<>();
         args.add("python");
         args.add(absPath.toString());
         args.addAll(Arrays.asList(commands.split("\\s+")));
@@ -30,8 +33,6 @@ public class PythonCommunicator {
             process = pb.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-            Scanner scan = new Scanner(System.in);
             String line;
 
 

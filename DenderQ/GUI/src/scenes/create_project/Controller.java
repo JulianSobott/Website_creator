@@ -4,25 +4,29 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import javafx.scene.input.InputMethodEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import scenes.Utils;
+import ui.Output;
 import ui.PythonCommunicator;
+import utils.Logging;
 
 import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.util.logging.Level;
 
 
 public class Controller implements Initializable {
 
     private ResourceBundle bundle;
     private final String DEFAULT_PROJECT_NAME = "Project1";
-    private final Path DEFAULT_DIR_START_PATH = Paths.get("E:\\Programmieren\\Java\\Tests"); //Paths.get(System.getProperty("user.home"));
+    private final Path DEFAULT_DIR_START_PATH = Paths.get("E:\\Programmieren\\Java\\Tests"); //LocPaths.get(System.getProperty("user.home"));
     private final String DEFAULT_TEMPLATE_NAME = "default";
 
     private String currentProjectName = DEFAULT_PROJECT_NAME;
@@ -30,12 +34,14 @@ public class Controller implements Initializable {
     private Path currentProjectPath = Paths.get(currentDirStartPath.toString(), currentProjectName);
 
     private String currentTemplateName = DEFAULT_TEMPLATE_NAME;
-    private boolean initWithGit = false;
+    private boolean initWithGit = true;
 
     @FXML
     private TextField tfProjectPath;
     @FXML
     private TextField tfProjectName;
+    @FXML
+    private CheckBox cbInitWithGit;
 
     public void clickedShowDirChooser(ActionEvent event){
         System.out.println("Clicked show dir chooser");
@@ -50,7 +56,10 @@ public class Controller implements Initializable {
     }
 
     public void clickedCreateProject(ActionEvent event){
-        PythonCommunicator.createProject(currentProjectPath.toString(), currentProjectName, currentTemplateName, initWithGit);
+        Output out = PythonCommunicator.createProject(currentProjectPath.toString(), currentProjectName, currentTemplateName, initWithGit);
+        if(!out.wasSuccessfull()){
+            Logging.logger.log(Level.SEVERE, "Creating project failed!");
+        }
     }
 
     @Override
@@ -62,6 +71,8 @@ public class Controller implements Initializable {
             currentProjectName = newValue;
             update_project_path(currentDirStartPath.toString(), newValue);
         });
+        cbInitWithGit.setSelected(initWithGit);
+        cbInitWithGit.selectedProperty().addListener(((observable, oldValue, newValue) -> initWithGit = newValue));
     }
 
     private void update_project_path(){
