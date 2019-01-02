@@ -10,4 +10,8 @@ public class LocPaths {
         String guiDir = System.getProperty("user.dir");
         return Paths.get(guiDir, "..\\..").normalize();
     }
+
+    public static Path getPathOfProjectFile(Path relProjectFilePath){
+        return Paths.get(getProjectPath().toString(), relProjectFilePath.toString());
+    }
 }

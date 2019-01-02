@@ -10,56 +10,85 @@
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="scenes.create_project.Controller">
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="scenes.create_project.Controller">
    <FlowPane prefHeight="400.0" prefWidth="600.0">
-      <HBox layoutX="10.0" layoutY="10.0" prefHeight="100.0" prefWidth="600.0">
+      <HBox layoutX="10.0" layoutY="10.0" prefWidth="600.0">
          <padding>
-            <Insets left="20.0" top="20.0"/>
+            <Insets left="20.0" top="20.0" />
          </padding>
          <Label text="%lbl.project_name">
             <HBox.margin>
-               <Insets right="20.0"/>
+               <Insets right="20.0" />
             </HBox.margin>
          </Label>
          <TextField fx:id="tfProjectName" prefWidth="300.0">
             <HBox.margin>
-               <Insets right="10.0"/>
+               <Insets right="10.0" />
             </HBox.margin>
          </TextField>
       </HBox>
-      <HBox prefHeight="100.0" prefWidth="600.0">
+      <HBox prefWidth="600.0">
          <padding>
-            <Insets left="20.0" top="20.0"/>
+            <Insets left="20.0" top="20.0" />
          </padding>
          <Label text="%lbl.project_path">
             <HBox.margin>
-               <Insets right="20.0"/>
+               <Insets right="20.0" />
             </HBox.margin>
          </Label>
          <TextField fx:id="tfProjectPath" prefWidth="300.0">
             <HBox.margin>
-               <Insets right="10.0"/>
+               <Insets right="10.0" />
             </HBox.margin>
          </TextField>
-         <Button mnemonicParsing="false" onAction="#clickedShowDirChooser" text="%btn.browse"/>
+         <Button mnemonicParsing="false" onAction="#clickedShowDirChooser" text="%btn.browse" />
+         <FlowPane.margin>
+            <Insets bottom="30.0" />
+         </FlowPane.margin>
       </HBox>
+      <Line endX="600.0" />
       <VBox prefHeight="100.0" prefWidth="600.0">
+         <Label text="%lbl.Options">
+            <font>
+               <Font size="18.0" />
+            </font>
+            <VBox.margin>
+               <Insets bottom="10.0" left="20.0" />
+            </VBox.margin>
+         </Label>
          <CheckBox fx:id="cbInitWithGit" mnemonicParsing="false" text="%cb.init_with_git">
             <VBox.margin>
-               <Insets left="20.0"/>
-            </VBox.margin>
-         </CheckBox>
+               <Insets left="20.0" />
+            </VBox.margin></CheckBox>
       </VBox>
-      <VBox prefHeight="200.0" prefWidth="100.0"/>
+      <Line endX="600.0" layoutX="11.0" layoutY="131.0" />
+      <VBox fx:id="vbTemplatesContainer" prefWidth="600.0">
+         <Label text="%lbl.templates">
+            <font>
+               <Font size="18.0"/>
+            </font>
+            <padding>
+               <Insets left="20.0"/>
+            </padding>
+            <VBox.margin>
+               <Insets bottom="10.0"/>
+            </VBox.margin>
+         </Label>
+      </VBox>
+      <Line endX="600.0" layoutX="11.0" layoutY="232.0">
+         <FlowPane.margin>
+            <Insets top="20.0" />
+         </FlowPane.margin>
+      </Line>
       <ButtonBar prefHeight="40.0" prefWidth="550.0">
          <buttons>
-            <Button id="btnCreateProject" mnemonicParsing="false"
-                    onAction="#clickedCreateProject" text="%btn.create_project"/>
+            <Button id="btnCreateProject" mnemonicParsing="false" onAction="#clickedCreateProject" text="%btn.create_project" />
          </buttons>
          <FlowPane.margin>
-            <Insets top="20.0"/>
+            <Insets top="20.0" />
          </FlowPane.margin>
       </ButtonBar>
    </FlowPane>

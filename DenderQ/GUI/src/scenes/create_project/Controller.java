@@ -1,18 +1,20 @@
 package scenes.create_project;
 
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextField;
-import javafx.scene.input.InputMethodEvent;
+import javafx.geometry.Insets;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Stage;
 import scenes.Utils;
+import templates.ProjectTemplate;
+import templates.Template;
 import ui.Output;
 import ui.PythonCommunicator;
 import utils.Logging;
+import templates.Templates;
 
 import java.io.File;
 import java.net.URL;
@@ -42,6 +44,9 @@ public class Controller implements Initializable {
     private TextField tfProjectName;
     @FXML
     private CheckBox cbInitWithGit;
+    @FXML
+    private VBox vbTemplatesContainer;
+    private ToggleGroup groupTemplates;
 
     public void clickedShowDirChooser(ActionEvent event){
         System.out.println("Clicked show dir chooser");
@@ -56,6 +61,7 @@ public class Controller implements Initializable {
     }
 
     public void clickedCreateProject(ActionEvent event){
+        currentTemplateName = ((RadioButton)groupTemplates.getSelectedToggle()).getText();
         Output out = PythonCommunicator.createProject(currentProjectPath.toString(), currentProjectName, currentTemplateName, initWithGit);
         if(!out.wasSuccessfull()){
             Logging.logger.log(Level.SEVERE, "Creating project failed!");
@@ -73,6 +79,7 @@ public class Controller implements Initializable {
         });
         cbInitWithGit.setSelected(initWithGit);
         cbInitWithGit.selectedProperty().addListener(((observable, oldValue, newValue) -> initWithGit = newValue));
+        createTemplatesSection();
     }
 
     private void update_project_path(){
@@ -82,5 +89,20 @@ public class Controller implements Initializable {
     private void update_project_path(String parentDir, String projectName){
         currentProjectPath = Paths.get(parentDir, projectName);
         tfProjectPath.setText(currentProjectPath.toString());
+    }
+
+    private void createTemplatesSection(){
+        groupTemplates = new ToggleGroup();
+        for(ProjectTemplate template : Templates.getAllProjectTemplates()){
+            RadioButton rbTemplate = new RadioButton();
+            rbTemplate.setText(template.getName());
+            rbTemplate.setToggleGroup(groupTemplates);
+            VBox.setMargin(rbTemplate, new Insets(10, 0, 0, 20));
+            vbTemplatesContainer.getChildren().add(rbTemplate);
+        }
+        ObservableList<Toggle> addedButtons = groupTemplates.getToggles();
+        if (!addedButtons.isEmpty()) {
+            groupTemplates.selectToggle(addedButtons.get(0));
+        }
     }
 }
