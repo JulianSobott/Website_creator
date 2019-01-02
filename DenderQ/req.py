@@ -30,7 +30,7 @@ DESCRIPTION = (
     "arguments inside '{}' are optional\n"
     "Following arguments are available:\n\n"
     "  --help, -h, ?: prints help.\n"
-    "  init {template=[template_name]}: Initializes inside an empty folder a new project\n" 
+    "  init {--git} {template=[template_name]}: Initializes inside an empty folder a new project\n" 
     "  --templates name=[template_name] {r, repl_f=[replaceables]}: "
                "Create all files and folders defined in templates.json\n"
     "  --parse-data {path=[json_src_path]}: Parses all data to html, defined in json_src_path\n"

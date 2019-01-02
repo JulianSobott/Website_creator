@@ -30,6 +30,7 @@ public class Controller implements Initializable {
     private Path currentProjectPath = Paths.get(currentDirStartPath.toString(), currentProjectName);
 
     private String currentTemplateName = DEFAULT_TEMPLATE_NAME;
+    private boolean initWithGit = false;
 
     @FXML
     private TextField tfProjectPath;
@@ -49,7 +50,7 @@ public class Controller implements Initializable {
     }
 
     public void clickedCreateProject(ActionEvent event){
-        PythonCommunicator.createProject(currentProjectPath.toString(), currentProjectName, currentTemplateName);
+        PythonCommunicator.createProject(currentProjectPath.toString(), currentProjectName, currentTemplateName, initWithGit);
     }
 
     @Override

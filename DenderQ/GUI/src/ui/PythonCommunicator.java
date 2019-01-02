@@ -53,10 +53,11 @@ public class PythonCommunicator {
         return output;
     }
 
-    public static Output createProject(String fullProjectPath, String projectName, String templateName){
+    public static Output createProject(String fullProjectPath, String projectName, String templateName, boolean initGit){
         StringBuilder args = new StringBuilder();
         Formatter formatter = new Formatter(args);
-        formatter.format("init name=\"%s\" template=\"%s\" root=\"%s\"", projectName, templateName, fullProjectPath);
+        formatter.format("init name=\"%s\" template=\"%s\" root=\"%s\" %s", projectName, templateName, fullProjectPath,
+                initGit ?  "--git" : "");
         Output out = PythonCommunicator.call(args.toString());
         System.out.println(out.toFullString());
         return out;
