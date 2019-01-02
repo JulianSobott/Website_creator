@@ -38,7 +38,7 @@ public class Main extends Application {
         Parent root;
         try {
             root = FXMLLoader.load(Main.class.getResource(resourceName + ".fxml"), bundle);
-            window.setScene(new Scene(root, 800, 600));
+            window.setScene(new Scene(root));
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }

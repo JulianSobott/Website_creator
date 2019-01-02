@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.stage.Stage;
+import scenes.Utils;
 import start.Main;
 
 public class Controller implements Initializable {
@@ -28,7 +29,7 @@ public class Controller implements Initializable {
     @FXML
     public void create_new_project(ActionEvent event){
         System.out.println("Pressed create new project");
-        Stage window = getStageOfEvent(event);
+        Stage window = Utils.getStageOfEvent(event);
         Main.setScene(window, bundle, "/scenes/create_project/layout");
         //PythonCommunicator.createProject();
     }
@@ -36,11 +37,6 @@ public class Controller implements Initializable {
     @FXML
     public void open_project(ActionEvent event){
         System.out.println("Pressed open_project");
-    }
-
-
-    private Stage getStageOfEvent(ActionEvent event){
-        return (Stage)((Node)event.getSource()).getScene().getWindow();
     }
 
 

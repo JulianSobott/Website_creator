@@ -1,18 +1,29 @@
 package ui;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Formatter;
+import java.util.List;
+import java.util.logging.Level;
+
 
 public class PythonCommunicator {
+
 
     private static Output call(String commands){
         String projectDir = System.getProperty("user.dir");
         String reqPath = "..\\req.py";
         Path absPath = Paths.get(projectDir, reqPath);
-        ProcessBuilder pb = new ProcessBuilder("python", absPath.toString(), commands);
+        List<String> args = new ArrayList<String>();
+        args.add("python");
+        args.add(absPath.toString());
+        args.addAll(Arrays.asList(commands.split("\\s+")));
+
+        ProcessBuilder pb = new ProcessBuilder(args);
+        Logging.logger.log(Level.INFO, args.toString());
         Process process;
         Output output;
 
@@ -27,9 +38,11 @@ public class PythonCommunicator {
             StringBuilder errorString = new StringBuilder();
             while ( (line = reader.readLine()) != null) {
                 outString.append(line).append(System.lineSeparator());
+                System.out.println(line);
             }
             while ( (line = errorOut.readLine()) != null) {
                 errorString.append(line).append(System.lineSeparator());
+                System.out.println(line);
             }
             exitCode = process.exitValue();
             output = new Output(outString.toString(), errorString.toString(), exitCode);
@@ -40,9 +53,11 @@ public class PythonCommunicator {
         return output;
     }
 
-    public static Output createProject(){
-        String args = "?";
-        Output out = PythonCommunicator.call(args);
+    public static Output createProject(String fullProjectPath, String projectName, String templateName){
+        StringBuilder args = new StringBuilder();
+        Formatter formatter = new Formatter(args);
+        formatter.format("init name=\"%s\" template=\"%s\" root=\"%s\"", projectName, templateName, fullProjectPath);
+        Output out = PythonCommunicator.call(args.toString());
         System.out.println(out.toFullString());
         return out;
     }

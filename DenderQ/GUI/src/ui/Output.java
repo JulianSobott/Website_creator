@@ -25,4 +25,8 @@ public class Output {
         str += "Errors: " + this.errors + "\n";
         return str;
     }
+
+    public boolean wasSuccessfull(){
+        return exitCode == 0;
+    }
 }
