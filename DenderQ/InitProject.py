@@ -10,6 +10,7 @@
 
 """
 import sys
+import os
 
 from Logging import logger
 import Project_templates
@@ -35,13 +36,18 @@ DESCRIPTION = (
     "\tSet template_name to '?' to view all available templates\n"
     "  {--structure}: Shows the detailed templates structures, when template_name is '?'\n"
     "  {name=[website_name]}: To set in some files automatically the website name"
+    "  {root=[full_project_path]}: Sets, root folder of the project (folder should be empty or non existing)\n"
     "\n"
     )
 
 """Public functions"""
 
 
-def init(template="default", website_name=None):
+def init(template="default", website_name=None, root_path=None):
+    if root_path:
+        os.makedirs(root_path, exist_ok=True)
+        os.chdir(root_path)
+        Paths.update()
     Project_templates.create_from_template(template, website_name)
 
 
@@ -53,6 +59,7 @@ def handle_sys_arguments(all_args):
     templates_structure_arg = ["--structure"]
     opt_template_arg = ["template", "t"]
     opt_website_name_arg = ["name"]
+    opt_root_path_arg = ["root"]
     if intersects(help_arg, all_args) or len(all_args) == 1:
         print_help()
         exit(0)
@@ -71,6 +78,10 @@ def handle_sys_arguments(all_args):
         opt_args["template"] = p_template
     if p_website_name:
         opt_args["website_name"] = p_website_name
+    p_root_path = get_optional_parameter(opt_root_path_arg, all_args)
+    if p_root_path:
+        p_root_path = p_root_path.replace("\\", "/")
+        opt_args["root_path"] = p_root_path
     init(**opt_args)
 
 

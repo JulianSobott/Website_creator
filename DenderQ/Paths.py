@@ -13,7 +13,8 @@ import os
 
 
 class Tool:
-    PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__))).replace('\\', '/')
+    PROJECT_PATH = os.path.dirname(os.path.abspath(__file__)).replace('\\', '/')
+    print(PROJECT_PATH)
     ABS_TEMPLATES_PATH = os.path.join(PROJECT_PATH, "Templates").replace('\\', '/')
     ABS_TEMPLATES_JSON_PATH = os.path.join(ABS_TEMPLATES_PATH, "templates.json").replace('\\', '/')
 
@@ -29,3 +30,7 @@ class Website:
     ABS_DEFAULT_SRC_JSON_PATH = os.path.join(ABS_DEV_PATH, "Scripts/data2html_actions.json").replace('\\', '/')
 
     ABS_CUSTOM_SCRIPT_PATH = os.path.join(ABS_DEV_PATH, "Scripts/Custom.py").replace('\\', '/')
+
+
+def update():
+    Website.PROJECT_PATH = os.getcwd().replace('\\', '/')

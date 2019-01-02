@@ -85,7 +85,12 @@ def replace_placeholders(text, replacements, is_file_name=False):
     for search_rex, replacer in replacements.items():
         if not is_file_name:
             search_rex = "{" + search_rex + "}"
-        final_text = re.sub(search_rex, replacer, final_text)
+        try:
+            final_text = re.sub(search_rex, replacer, final_text)
+        except re.error as e:
+            logger.warning(e)
+            logger.debug("with Variables:\n search_rex: %s\nreplacer: %s\nfinal_text: %s\n",
+                         search_rex, replacer, final_text)
     return final_text
 
 

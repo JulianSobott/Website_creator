@@ -3,10 +3,7 @@ package ui;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Formatter;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 
 
@@ -21,9 +18,10 @@ public class PythonCommunicator {
         args.add("python");
         args.add(absPath.toString());
         args.addAll(Arrays.asList(commands.split("\\s+")));
+        Logging.logger.log(Level.INFO, args.toString());
 
         ProcessBuilder pb = new ProcessBuilder(args);
-        Logging.logger.log(Level.INFO, args.toString());
+        pb.redirectErrorStream(true);
         Process process;
         Output output;
 
@@ -31,18 +29,20 @@ public class PythonCommunicator {
         try {
             process = pb.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            BufferedReader errorOut = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-
+            BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+            Scanner scan = new Scanner(System.in);
             String line;
+
+
             StringBuilder outString = new StringBuilder();
             StringBuilder errorString = new StringBuilder();
             while ( (line = reader.readLine()) != null) {
                 outString.append(line).append(System.lineSeparator());
-                System.out.println(line);
             }
-            while ( (line = errorOut.readLine()) != null) {
+
+            while ( (line = stderr.readLine()) != null) {
                 errorString.append(line).append(System.lineSeparator());
-                System.out.println(line);
             }
             exitCode = process.exitValue();
             output = new Output(outString.toString(), errorString.toString(), exitCode);

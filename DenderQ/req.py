@@ -64,6 +64,7 @@ if __name__ == "__main__":
         print_help()
         exit(0)
 
+    logger.debug(all_args)
     if intersects(help_arg, list(all_args[0])):
         print_help()
         exit(0)
