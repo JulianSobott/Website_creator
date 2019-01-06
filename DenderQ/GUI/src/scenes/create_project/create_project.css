@@ -1,0 +1,15 @@
+.btnTemplateStructure {
+    -fx-background-color: rgba(0, 0, 0, 0);
+}
+
+.btnTemplateStructure:selected {
+     -fx-background-color: rgba(10, 10, 10, 150);
+}
+
+.btnTemplateStructure:hover {
+    -fx-background-color: rgba(150, 150, 150, .1);
+}
+
+.vbStructureContainer {
+    -fx-padding: 20;
+}

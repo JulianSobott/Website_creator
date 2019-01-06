@@ -1,7 +1,7 @@
 {
   "default": {
     "dev": {
-      "index.html": "index.html",
+      "index.html": "website_includes/index.html",
       "build_configs.json": "website_includes/build_configs.json"
     },
     "release": {
