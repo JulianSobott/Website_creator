@@ -11,5 +11,9 @@
 }
 
 .vbStructureContainer {
+    -fx-border-width: 2;
+    -fx-border-color: #777;
     -fx-padding: 20;
+    -fx-background-color: #999;
+
 }

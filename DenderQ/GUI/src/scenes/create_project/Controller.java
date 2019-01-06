@@ -6,7 +6,9 @@ import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -18,8 +20,10 @@ import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.json.JSONObject;
 import scenes.Utils;
+import templates.FileType;
 import templates.ProjectTemplate;
 import templates.Template;
 import ui.Output;
@@ -27,6 +31,7 @@ import ui.PythonCommunicator;
 import utils.Logging;
 import templates.Templates;
 
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.net.URL;
 import java.util.Iterator;
@@ -61,7 +66,8 @@ public class Controller implements Initializable {
     private ToggleGroup groupTemplates;
     @FXML
     private AnchorPane anchorPane;
-    private Stage window;
+    private Popup popupTemplateStructure;
+
 
     public void clickedShowDirChooser(ActionEvent event){
         System.out.println("Clicked show dir chooser");
@@ -95,17 +101,6 @@ public class Controller implements Initializable {
         cbInitWithGit.setSelected(initWithGit);
         cbInitWithGit.selectedProperty().addListener(((observable, oldValue, newValue) -> initWithGit = newValue));
 
-        anchorPane.sceneProperty().addListener((observable, oldScene, newScene) -> {
-            if (oldScene == null && newScene != null) {
-                // scene is set for the first time. Now its the time to listen stage changes.
-                newScene.windowProperty().addListener((observableWindow, oldWindow, newWindow) -> {
-                    if (oldWindow == null && newWindow != null) {
-                        // stage is set. now is the right time to do whatever we need to the stage in the controller.
-                        window = (Stage)newWindow;
-                    }
-                });
-            }
-        });
         createTemplatesSection();
     }
 
@@ -128,7 +123,9 @@ public class Controller implements Initializable {
             HBox.setMargin(rbTemplate, new Insets(10, 0, 0, 20));
 
             Button btnTemplateStructure = new Button();
-            btnTemplateStructure.setOnAction(event -> showTemplateStructure(template));
+
+            btnTemplateStructure.setOnMouseEntered(event -> showTemplateStructure(template, btnTemplateStructure));
+            btnTemplateStructure.setOnMouseExited(event ->  hideTemplateStructure());
             Image imgShowTemplateStructure = new Image(getClass().getResourceAsStream("/info_black_18dp.png"));
             btnTemplateStructure.setGraphic(new ImageView(imgShowTemplateStructure));
             btnTemplateStructure.getStyleClass().add("btnTemplateStructure");
@@ -143,8 +140,8 @@ public class Controller implements Initializable {
         }
     }
 
-    private void showTemplateStructure(Template template){
-        Stage stPopupTemplate = new Stage();
+    private void showTemplateStructure(Template template, Node infoNode){
+        popupTemplateStructure = new Popup();
 
         VBox vbStructureContainer = new VBox();
         vbStructureContainer.getChildren().add(getVBoxOfTemplate(template.getName(), template.getJsonObject(), 0));
@@ -152,19 +149,26 @@ public class Controller implements Initializable {
         vbStructureContainer.getStylesheets().add("scenes/create_project/create_project.css");
         vbStructureContainer.getStyleClass().add("vbStructureContainer");
 
-        Scene scPopupTemplate = new Scene(vbStructureContainer);
-        stPopupTemplate.setScene(scPopupTemplate);
-        stPopupTemplate.show();
+        popupTemplateStructure.getContent().add(vbStructureContainer);
+
+        Window parent = anchorPane.getScene().getWindow();
+
+        Bounds infoNodeBounds = infoNode.localToScreen(infoNode.getBoundsInLocal());
+        popupTemplateStructure.setX(infoNodeBounds.getMinX() + infoNodeBounds.getWidth() + 10);
+        popupTemplateStructure.setY(infoNodeBounds.getMinY() - 10);
+        popupTemplateStructure.show(parent);
+    }
+
+    private void hideTemplateStructure(){
+        popupTemplateStructure.hide();
     }
 
     private VBox getVBoxOfTemplate(String name, JSONObject values, int level){
         int indention = 20;
         VBox vbTemplate = new VBox();
 
-        Label lblTemplateLine = new Label(name);
-        VBox.setMargin(lblTemplateLine, new Insets(2, 0, 2, indention * level));
-
-        vbTemplate.getChildren().add(lblTemplateLine);
+        HBox hbTemplateLine = getTemplateLineHBox(name, FileType.FOLDER, level);
+        vbTemplate.getChildren().add(hbTemplateLine);
 
         Iterator<String> jsonKeys = values.keys();
         while(jsonKeys.hasNext()){
@@ -174,11 +178,30 @@ public class Controller implements Initializable {
             if (keyObject instanceof JSONObject){
                 vbTemplate.getChildren().add(getVBoxOfTemplate(key, (JSONObject)keyObject, level + 1));
             }else if(keyObject instanceof String){
-                Label lblInnerTemplateLine = new Label(key);
-                VBox.setMargin(lblInnerTemplateLine, new Insets(2, 0, 2, indention * (level + 1)));
-                vbTemplate.getChildren().add(lblInnerTemplateLine);
+                HBox hbInnerTemplateLine = getTemplateLineHBox(key, FileType.FILE, level + 1);
+                vbTemplate.getChildren().add(hbInnerTemplateLine);
             }
         }
         return vbTemplate;
+    }
+
+    private HBox getTemplateLineHBox(String name, FileType fileType, int indentionLevel){
+        int INDENTION = 20;
+        HBox hbTemplateLine = new HBox();
+
+        Image imgFileType;
+        if(fileType == FileType.FOLDER){
+            imgFileType = new Image(getClass().getResourceAsStream("/folder_black_18dp.png"));
+        }else{
+            imgFileType = new Image(getClass().getResourceAsStream("/file_black_18dp.png"));
+        }
+
+        ImageView ivFileType = new ImageView(imgFileType);
+
+        Label lblTemplateLine = new Label(name);
+        HBox.setMargin(ivFileType, new Insets(2, 0, 2, INDENTION * indentionLevel));
+
+        hbTemplateLine.getChildren().addAll(ivFileType, lblTemplateLine);
+        return hbTemplateLine;
     }
 }
