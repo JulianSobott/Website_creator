@@ -12,25 +12,25 @@
 import re
 
 from Logging import logger
-from .Token_generator import Token
+from .Token_generator import Token, tokens_2_code
 
 
 def is_valid_grammar(order, tokens):
+    if len(order) != len(tokens):
+        return False
     idx = 0
-    is_valid = True
     for match in order:
         try:
             token = tokens[idx]
         except IndexError:
-            is_valid = False
-            break
-        if not token.type == match[0] or not re.match(match[1], token.value):
-            is_valid = False
-            break
+            return False
+        if not token.type == match[0]:
+            return False
+        re_match = re.match(match[1], token.value)
+        if not re_match or re_match.endpos < len(token.value):
+            return False
         idx += 1
-    if is_valid:
-        return True
-    return False
+    return True
 
 
 class ForInLoop:
@@ -139,16 +139,21 @@ class Assignment:
 
 
 class Variable:
+    """Variable is REPLACEABLE in Token"""
 
-    STRING = (0, "string")
-    INT = (1, "integer")
-    FLOAT = (2, "float")
-    BOOLEAN = (3, "boolean")
+    STRING = (0, "string", "\\\"[a-zA-Z_]+[a-zA-Z0-9_]*\\\"")
+    INT = (1, "integer", "[0-9]*")
+    FLOAT = (2, "float", "[0-9]+.{1}[0-9]*")
+    BOOLEAN = (3, "boolean", "true|false")
 
-    def __init__(self, name, type: tuple, value=None):
+    def __init__(self, name, data_type: tuple, value=None):
         self.name = name
-        self.type = type
+        self.data_type = data_type
         self.value = value
+
+
+    def assign(self, value):
+        pass
 
 
 class Write:
@@ -208,10 +213,11 @@ class CodeBlock:
             tokens, cut = cut_outer_eols(tokens)
             first_token = tokens[0]
             if first_token.type == Token.KEYWORD:
-                next_line, idx_token_end = get_next_line(tokens)
+                next_line, idx_token_next_line = get_next_line(tokens)
                 if Assignment.is_valid_block(next_line):
                     assignment = Assignment(tokens)
                     self.elements.append(assignment)
+                    idx_token_end = idx_token_next_line
                 else:
                     header_tokens, idx_end = get_header_tokens(tokens)
                     body_tokens, idx_token_end = get_body_tokens(tokens[idx_end:])
@@ -223,15 +229,15 @@ class CodeBlock:
                     elif ForToLoop.is_valid_block(tokens):
                         for_to_block = ForToLoop(header_tokens, body_code_block)
                         self.elements.append(for_to_block)
-
+                    else:
+                        idx_token_end = idx_token_next_line
+                        logger.error("No suitable definition for Code line found! (" + tokens_2_code(next_line) + ")")
             else:
                 next_line, idx_token_end = get_next_line(tokens)
                 if Write.is_valid_block(next_line):
                     writer = Write(next_line)
                     self.elements.append(writer)
             tokens = tokens[idx_token_end + 1:]
-            if len(self.elements) == 0:
-                logger.error("No suitable definition for Code line found! (" + str(tokens) + ")")
 
     def to_html(self, replacements):
         html = ""
@@ -273,7 +279,7 @@ def get_proper_for_loop_class(tokens):
 def get_body_tokens(tokens):
     """Returns a list with all tokens, that belongs to the current block"""
     if len(tokens) == 0:
-        return ""
+        return "", 0
     num_open_brackets = 0
     idx_token_end = 0
     block_tokens = []

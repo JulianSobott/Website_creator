@@ -12,7 +12,7 @@
 from Logging import logger
 from .Keywords import KEYWORDS, SIGNS
 
-__all__ = ["generate_tokens", "tokens_2_str"]
+__all__ = ["generate_tokens", "tokens_2_str", "tokens_2_code"]
 
 example_code = (
     "for i, child in {children}{\n"
@@ -188,6 +188,10 @@ def generate_tokens(code):
 
 def tokens_2_str(tokens):
     return '[|%s]' % '| |'.join(map(str, tokens))
+
+
+def tokens_2_code(tokens):
+    return '%s' % ' '.join(map(str, list(token.value for token in tokens)))
 
 
 if __name__ == '__main__':
