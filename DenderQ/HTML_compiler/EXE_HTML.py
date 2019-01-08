@@ -20,9 +20,10 @@ example_code_04 = (
     "}\n"
 )
 example_code_03 = (
-    "for i, child in {children}\n"
-    "<< World\n"
-    "}\n"
+"""
+var {i} = 0
+<p>{i}</p>
+"""
 )
 
 
@@ -36,4 +37,5 @@ def parse_executable_html(code, replaceables):
 
 if __name__ == '__main__':
     p_repl = {"children": ["Tom", "Anna"]}
+    p_repl = {}
     parse_executable_html(example_code_03, p_repl)

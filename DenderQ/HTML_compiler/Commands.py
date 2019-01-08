@@ -63,8 +63,7 @@ class ForInLoop:
                        (Token.REPLACEABLE, "\\{\\S*\\}")]
         orders = [order_long, order_short]
         for order in orders:
-            is_valid = is_valid_grammar(order, tokens)
-            if is_valid:
+            if is_valid_grammar(order, tokens):
                 return True
         return False
 
@@ -120,6 +119,38 @@ class IfStatement:
     pass
 
 
+class Assignment:
+
+    def __init__(self, tokens):
+        self.variable_name = tokens[1]
+        self.variable_value = tokens[3]
+
+    @staticmethod
+    def is_valid_block(tokens):
+        order_int = [(Token.KEYWORD, "var"), (Token.REPLACEABLE, "\\{\\S*\\}"), (Token.SIGN, "="),
+                     (Token.VARIABLE, "[0-9]*")]
+        order_text = [(Token.KEYWORD, "var"), (Token.REPLACEABLE, "\\{\\S*\\}"), (Token.SIGN, "="),
+                     (Token.VARIABLE, "\\\"[a-zA-Z_]+[a-zA-Z0-9_]*\\\"")]
+        orders = [order_int, order_text]
+        for order in orders:
+            if is_valid_grammar(order, tokens):
+                return True
+        return False
+
+
+class Variable:
+
+    STRING = (0, "string")
+    INT = (1, "integer")
+    FLOAT = (2, "float")
+    BOOLEAN = (3, "boolean")
+
+    def __init__(self, name, type: tuple, value=None):
+        self.name = name
+        self.type = type
+        self.value = value
+
+
 class Write:
 
     def __init__(self, tokens):
@@ -144,8 +175,8 @@ class Write:
                     key = token.value[1:-1]
                     html += str(replacements[key])
                 except KeyError:
-                    logger.error("Replacement not found! (%s)", key)
-                    html += str(key)
+                    logger.warning("Replacement not found! (%s)", key)
+                    html += "{" + str(key) + "}"
             elif token.type == Token.END_OF_LINE:
                 html += "\n"
             else:
@@ -172,20 +203,26 @@ class Write:
 class CodeBlock:
     def __init__(self, tokens):
         self.elements = []
+        self.variables = []
         while len(tokens) > 0:
             tokens, cut = cut_outer_eols(tokens)
             first_token = tokens[0]
             if first_token.type == Token.KEYWORD:
-                header_tokens, idx_end = get_header_tokens(tokens)
-                body_tokens, idx_token_end = get_body_tokens(tokens[idx_end:])
-                idx_token_end += idx_end - 1
-                body_code_block = CodeBlock(body_tokens)
-                if ForInLoop.is_valid_block(header_tokens):
-                    for_in_block = ForInLoop(header_tokens, body_code_block)
-                    self.elements.append(for_in_block)
-                elif ForToLoop.is_valid_block(tokens):
-                    for_to_block = ForToLoop(header_tokens, body_code_block)
-                    self.elements.append(for_to_block)
+                next_line, idx_token_end = get_next_line(tokens)
+                if Assignment.is_valid_block(next_line):
+                    assignment = Assignment(tokens)
+                    self.elements.append(assignment)
+                else:
+                    header_tokens, idx_end = get_header_tokens(tokens)
+                    body_tokens, idx_token_end = get_body_tokens(tokens[idx_end:])
+                    idx_token_end += idx_end - 1
+                    body_code_block = CodeBlock(body_tokens)
+                    if ForInLoop.is_valid_block(header_tokens):
+                        for_in_block = ForInLoop(header_tokens, body_code_block)
+                        self.elements.append(for_in_block)
+                    elif ForToLoop.is_valid_block(tokens):
+                        for_to_block = ForToLoop(header_tokens, body_code_block)
+                        self.elements.append(for_to_block)
 
             else:
                 next_line, idx_token_end = get_next_line(tokens)
@@ -235,6 +272,8 @@ def get_proper_for_loop_class(tokens):
 
 def get_body_tokens(tokens):
     """Returns a list with all tokens, that belongs to the current block"""
+    if len(tokens) == 0:
+        return ""
     num_open_brackets = 0
     idx_token_end = 0
     block_tokens = []

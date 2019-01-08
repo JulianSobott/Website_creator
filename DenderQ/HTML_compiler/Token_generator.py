@@ -176,7 +176,7 @@ class Token:
 def generate_tokens(code):
     text = Text(code)
     tokens = []
-    idx_line = 0
+    idx_line = 1
     for line in text:
         for word, columns in Line(line):
             token = Token(word, idx_line, columns)

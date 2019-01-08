@@ -28,6 +28,7 @@ add_keyword("for")
 add_keyword("in")
 add_keyword("to")
 add_keyword("if")
+add_keyword("var")
 
 # Signs
 

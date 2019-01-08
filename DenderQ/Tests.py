@@ -44,6 +44,13 @@ example_real = (
     """
 )
 
+example_variables = (
+"""
+var {i} = 0
+<p>{i}</p>
+"""
+)
+
 
 class TestTokens(unittest.TestCase):
 
@@ -92,4 +99,8 @@ class TestHTML(unittest.TestCase):
 """
         )
         self.assertEqual(html, correct_html)
+
+    def test_variables(self):
+        replaceables = {}
+        html = parse_executable_html(example_variables, replaceables)
 
