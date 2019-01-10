@@ -46,7 +46,7 @@ example_real = (
 
 example_variables = (
 """
-var {i} = 0 ha
+var {i} = "Hello World"
 <p>{i}</p>
 """
 )

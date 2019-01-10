@@ -141,19 +141,31 @@ class Assignment:
 class Variable:
     """Variable is REPLACEABLE in Token"""
 
-    STRING = (0, "string", "\\\"[a-zA-Z_]+[a-zA-Z0-9_]*\\\"")
+    STRING = (0, "string", "\\\".*\\\"")
     INT = (1, "integer", "[0-9]*")
     FLOAT = (2, "float", "[0-9]+.{1}[0-9]*")
     BOOLEAN = (3, "boolean", "true|false")
+    VARIABLE = (4, "variable", "\\{[a-zA-Z_]+[a-zA-Z0-9_]*\\}")
 
-    def __init__(self, name, data_type: tuple, value=None):
-        self.name = name
-        self.data_type = data_type
-        self.value = value
-
+    def __init__(self, code_line):
+        self.name = code_line[1]
+        if len(code_line) > 2:
+            self.value = code_line[3]
 
     def assign(self, value):
         pass
+
+    @staticmethod
+    def is_valid_block(tokens):
+        order_definition = [(Token.KEYWORD, "var"), (Token.REPLACEABLE, "\\{\\S*\\}")]
+        order_assignment = [(Token.KEYWORD, "var"), (Token.REPLACEABLE, "\\{\\S*\\}"), (Token.SIGN, "="),
+                            (Token.VARIABLE, "|".join([Variable.STRING[2], Variable.INT[2],
+                                                       Variable.FLOAT[2], Variable.BOOLEAN[2], Variable.VARIABLE[2]]))]
+        orders = [order_definition, order_assignment]
+        for order in orders:
+            if is_valid_grammar(order, tokens):
+                return True
+        return False
 
 
 class Write:
@@ -217,6 +229,7 @@ class CodeBlock:
                 if Assignment.is_valid_block(next_line):
                     assignment = Assignment(tokens)
                     self.elements.append(assignment)
+                    self.variables
                     idx_token_end = idx_token_next_line
                 else:
                     header_tokens, idx_end = get_header_tokens(tokens)

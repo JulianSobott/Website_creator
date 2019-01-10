@@ -119,7 +119,7 @@ class Line:
                         return element, (idx_start, idx_end - 1)
                     else:
                         try:
-                            c_comb = c + working_text[working_idx ]
+                            c_comb = c + working_text[working_idx]
                             if c_comb in SIGNS:
                                 self.idx += 1
                                 return c_comb, (idx_start, idx_end + 1)
