@@ -15,7 +15,7 @@ if __name__ == '__main__':
     from Globals import get_current_file_name
 else:
     from .Constants import KEYWORDS, SIGNS, OPERATORS
-    from .Error_handler import add_error, UnknownCharacterSequence
+    from .Error_handler import *
     from .Globals import get_current_file_name
 
 
@@ -25,10 +25,16 @@ class CharStream:
         self.chars = chars
         self.idx = 0
         self.line = 0
+        self.idx_col = 0
         self.end_flag = False
 
     def load_prev(self):
         self.idx -= 1
+        if self.chars[self.idx] in "\n\r":
+            self.idx_col = 0
+            self.line -= 1
+        else:
+            self.idx_col -= 1
 
     def get_next(self):
         try:
@@ -36,8 +42,14 @@ class CharStream:
         except StopIteration:
             return ""
 
+    def get_current(self):
+        try:
+            return self.chars[self.idx]
+        except IndexError:
+            return ""
+
     def get_pos(self):
-        return self.line, self.idx
+        return self.line, self.idx_col
 
     def __iter__(self):
         return self
@@ -47,6 +59,7 @@ class CharStream:
             char = self.chars[self.idx]
             if char in "\n\r":
                 self.line += 1
+                self.idx_col = 0
             return char
         except IndexError:
             self.end_flag = True
@@ -54,6 +67,7 @@ class CharStream:
         finally:
             if not self.end_flag:
                 self.idx += 1
+                self.idx_col += 1
 
 
 def create_tokens(chars: str):
@@ -66,6 +80,12 @@ def create_tokens(chars: str):
             string = get_string(char, char_stream)
             if string:
                 tokens.append(string)
+        elif char == OPERATORS["SLASH"]:
+            comment = get_comment(char, char_stream)
+            if comment:
+                tokens.append(comment)
+            else:
+                tokens.append(get_sign(char, char_stream, OPERATORS.values(), is_operator=True))
         elif char in SIGNS.values():
             tokens.append(get_sign(char, char_stream, SIGNS.values(), is_operator=False))
         elif char in OPERATORS.values():
@@ -76,8 +96,7 @@ def create_tokens(chars: str):
             tokens.append(get_identifier(char, char_stream))
         else:
             add_error(UnknownCharacterSequence(char, get_current_file_name(), *char_stream.get_pos()))
-
-    print(tokens)
+    return tokens
 
 
 def get_string(char, char_stream):
@@ -88,15 +107,19 @@ def get_string(char, char_stream):
     closed = False
     for next_char in char_stream:
         idx_end += 1
-        if next_char == char and not is_escaped:
-            closed = True
-            break
-        elif is_escaped:
-            string += "\""
-            is_escaped = False
+        if next_char == char:
+            if not is_escaped:
+                closed = True
+                break
+            else:
+                string += "\""
+                is_escaped = False
         else:
             if next_char == SIGNS["BACKSLASH"]:
                 is_escaped = True
+            elif next_char in "\n\r":
+                char_stream.load_prev()
+                break
             else:
                 is_escaped = False
                 string += next_char
@@ -105,6 +128,38 @@ def get_string(char, char_stream):
     else:
         add_error(MissingCharacter(char, get_current_file_name(), *char_stream.get_pos()))
         return None
+
+
+def get_comment(char, char_stream):
+    string = ""
+    idx_start = char_stream.idx - 1
+    idx_end = idx_start + 1
+    next_char = char_stream.get_next()
+    if next_char not in [OPERATORS["STAR"], OPERATORS["SLASH"]]:
+        return None
+    is_single_line = next_char == OPERATORS["SLASH"]
+    closed = False
+
+    for next_char in char_stream:
+        idx_end += 1
+        if is_single_line:
+            if next_char in "\r\n":
+                closed = True
+                break
+            else:
+                string += next_char
+        else:
+            if next_char == OPERATORS["STAR"]:
+                if char_stream.get_current() == OPERATORS["SLASH"]:
+                    char_stream.get_next()
+                    closed = True
+                    break
+                else:
+                    string += next_char
+            else:
+                string += next_char
+
+    return Token(Token.COMMENT, string, idx_start, idx_end)
 
 
 def get_sign(char, char_stream, allowed_signs, is_operator):
@@ -179,6 +234,7 @@ class Token:
     KEYWORD = (3, "KEYWORD")
     OPERATOR = (4, "OPERATOR")
     STRING = (5, "STRING")
+    COMMENT = (6, "COMMENT")
 
     def __init__(self, token_type, value, idx_start, idx_end):
         self.type = token_type

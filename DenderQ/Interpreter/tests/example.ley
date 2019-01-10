@@ -1,0 +1,33 @@
+//Global anonymous Constants
+{
+NAME: John
+SURNAME: Walter
+AGE: 12
+FULL_NAME: name + surname
+}
+
+//Named Constants
+Person {
+NAME: Anna
+SURNAME: Willis
+AGE: 12
+}
+
+//Variables
+var counter = 0
+var arg = "String"
+var list_ = ["hello", "world", arg, 10, AGE]
+var dict = [Key: "Value", key2: 10, key3: NAME]
+
+//Calculations
+counter = counter + 2
+
+//Loop
+for i, value in dict{
+	<p {i}> {value}</p>
+}
+
+//Html + expression
+<p>{arg + counter}</p>
+
+#include "big.lexe"

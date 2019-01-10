@@ -9,7 +9,13 @@
 @internal_use:
 
 """
+import os
+
+current_file_path = ""
 
 
 def get_current_file_name():
-    return "Example.FILE"
+    try:
+        return os.path.split(current_file_path)[1]
+    except IndexError:
+        return current_file_path

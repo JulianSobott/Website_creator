@@ -40,15 +40,18 @@ add_keyword("var")
 # Signs
 add_sign(",", "COMMA")
 add_sign(".", "POINT")
-add_sign("(", "LBRACKET")
-add_sign(")", "RBRACKET")
-add_sign("{", "L_CURL_BRA")
-add_sign("}", "R_CURL_BRA")
+add_sign("(", "L_PARENTHESES")
+add_sign(")", "R_PARENTHESES")
+add_sign("{", "L_BRACES")
+add_sign("}", "R_BRACES")
+add_sign("[", "L_BRACKET")
+add_sign("]", "R_BRACKET")
+add_sign("#", "HASH")
 add_sign("\"", "D_QUOTE")
 add_sign("'", "S_QUOTE")
 add_sign("_", "UNDERSCORE")
 add_sign("\\", "BACKSLASH")
-add_sign(":", "D_POINT")
+add_sign(":", "COLON")
 
 #add_sign("<<")      # Write line
 
