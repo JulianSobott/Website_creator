@@ -26,7 +26,13 @@ def create_tokens(chars: str):
     tokens = []
     for char in char_stream:
         if char.isspace():
-            pass
+            if char in "\n\r":
+                token = Token(Token.EOL, char, char_stream.idx - 1, char_stream.idx - 1)
+                try:
+                    if tokens[-1].type != Token.EOL:
+                        tokens.append(token)
+                except IndexError:
+                    tokens.append(token)
         elif char in [SIGNS["D_QUOTE"], SIGNS["S_QUOTE"]]:
             string = get_string(char, char_stream)
             if string:
@@ -186,6 +192,7 @@ class Token:
     OPERATOR = (4, "OPERATOR")
     STRING = (5, "STRING")
     COMMENT = (6, "COMMENT")
+    EOL = (7, "END_OF_LINE")
 
     def __init__(self, token_type, value, idx_start, idx_end):
         self.type = token_type

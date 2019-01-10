@@ -16,6 +16,6 @@ from Interpreter import Interpreter
 class TestTokens(unittest.TestCase):
 
     def test_example_01(self):
-        in_file = "tests/example.ley"
+        in_file = "example.ley"
         out_file = ""
         Interpreter.parse_file(in_file, out_file)
