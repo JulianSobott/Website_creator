@@ -9,7 +9,3 @@
 @internal_use:
 
 """
-
-
-def get_current_file_name():
-    return "Example.FILE"

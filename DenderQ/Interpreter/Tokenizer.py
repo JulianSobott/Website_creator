@@ -1,6 +1,6 @@
 """
 @author: Julian Sobott
-@created: 10.01.2018
+@created: 10.01.2019
 @brief: Takes in a stream of chars and generates tokens
 @description:
 
