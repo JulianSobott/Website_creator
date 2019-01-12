@@ -46,23 +46,31 @@ class CodeElement:
                     break
                 element_type = element[0]
                 element_specification = element[1]
+                if not isinstance(element_specification, list):
+                    element_specification = [element_specification]
                 if len(element) == 3:
                     element_counts = element[2]
                 else:
                     element_counts = Single
 
                 if element_type is Coherency:
-                    if not isinstance(token, element_specification):
-                        element_specification: CodeElement
-                        element_specification().parse_possible(code_stream)
+                    element_class = element_specification[0]
+                    if isinstance(token, CodeElement):
+                        token_fits_element = element_class().parse_possible(code_stream)
                 elif element_type is Token:
-                    if token.type != element_specification:
+                    try:
+                        if token.type not in element_specification:
+                            token_fits_element = False
+                    except AttributeError:
                         token_fits_element = False
                 elif element_type is SIGNS:
-                    if token.value is not element_specification:
+                    try:
+                        if token.value not in element_specification:
+                            token_fits_element = False
+                    except AttributeError:
                         token_fits_element = False
                 elif element_type is OPERATORS:
-                    if token.value != element_specification:
+                    if token.value not in element_specification:
                         token_fits_element = False
 
                 if element_counts == Optional:
@@ -89,6 +97,7 @@ class CodeElement:
                     else:
                         grammar_stream.inc()
                         # next element
+        return is_possible
 
     def __call__(self, *args, **kwargs):
         cls = self.__class__
@@ -141,17 +150,33 @@ class Expression:
 
 class Calculation(CodeElement):
 
+    valid_operations = [OPERATORS["PLUS"], OPERATORS["STAR"], OPERATORS["SLASH"], OPERATORS["MINUS"], OPERATORS["AND"],
+                        OPERATORS["OR"], OPERATORS["GT"], OPERATORS["GE"], OPERATORS["EEQ"],
+                        OPERATORS["NE"], OPERATORS["LT"], OPERATORS["LE"]]
+
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.grammars = [[(Coherency, Number)],
-                         [(Coherency, self.__class__), (OPERATORS, OPERATORS["PLUS"]), (Coherency, self.__class__)]]
+                         [(SIGNS, SIGNS["L_PARENTHESES"], Optional), (Coherency, self.__class__),
+                          (OPERATORS, self.valid_operations), (Coherency, self.__class__),
+                          (SIGNS, SIGNS["L_PARENTHESES"], Optional)]
+                         ]
         self.l_value = 0
         self.r_value = None
         self.sign = None
         if len(args) > 0:
             tokens = args[0]
-            if len(tokens) == 1:
+            if len(tokens) >= 1:
                 self.l_value = tokens[0]
+            if len(tokens) > 1:
+                self.sign = tokens[1]
+                self.r_value = tokens[2]
+
+    def __repr__(self):
+        if self.r_value:
+            return "(" + str(self.l_value) + str(self.sign.value) + str(self.r_value) + ")"
+        else:
+            return str(self.l_value)
 
 
 class Number(CodeElement):
@@ -162,6 +187,9 @@ class Number(CodeElement):
         if len(args) > 0:
             token = args[0][0]
             self.value = token.value
+
+    def __repr__(self):
+        return self.value
 
 
 def create_abstract_code(tokens):
