@@ -9,7 +9,7 @@
 @internal_use:
 
 """
-
+from .Tokenizer import Token
 
 class CharStream:
 
@@ -70,6 +70,13 @@ class TokenStream:
         self.idx_last_end = 0
         self.end_flag = False
 
+    def remove_comments(self):
+        new_tokens = []
+        for token in self.tokens:
+            if token.type != Token.COMMENT:
+                new_tokens.append(token)
+        self.tokens = new_tokens
+
     def load_prev(self):
         self.idx = self.idx_last_end
 
@@ -98,4 +105,29 @@ class TokenStream:
         finally:
             if not self.end_flag:
                 self.idx += 1
+
+
+class CodeElementStream:
+
+    def __init__(self, tokens):
+        self.elements = tokens
+        self.idx = 0
+
+    def branch(self):
+        pass
+
+    def merge(self, elements):
+        pass
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            element = self.elements[self.idx]
+            return element
+        except IndexError:
+            raise StopIteration
+        finally:
+            self.idx += 1
 
