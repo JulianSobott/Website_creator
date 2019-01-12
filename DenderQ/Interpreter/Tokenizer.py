@@ -9,16 +9,11 @@
 @internal_use:
 
 """
-if __name__ == '__main__':
-    from Constants import KEYWORDS, SIGNS, OPERATORS
-    from Error_handler import *
-    from Globals import get_current_file_name
-    from Streams import CharStream
-else:
-    from .Constants import KEYWORDS, SIGNS, OPERATORS
-    from .Error_handler import *
-    from .Globals import get_current_file_name
-    from .Streams import CharStream
+
+from Constants import KEYWORDS, SIGNS, OPERATORS
+from Error_handler import *
+from Globals import get_current_file_name
+from Streams import CharStream
 
 
 def create_tokens(chars: str):
@@ -148,6 +143,9 @@ def get_number(char, char_stream):
     while True:
         next_char = char_stream.get_next()
         if len(next_char) == 0:
+            char_stream.load_prev()
+            break
+        if next_char in "\n\r\t ":
             char_stream.load_prev()
             break
         try:

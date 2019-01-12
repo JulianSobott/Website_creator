@@ -9,7 +9,6 @@
 @internal_use:
 
 """
-from .Tokenizer import Token
 
 class CharStream:
 
@@ -71,6 +70,7 @@ class TokenStream:
         self.end_flag = False
 
     def remove_comments(self):
+        from Tokenizer import Token
         new_tokens = []
         for token in self.tokens:
             if token.type != Token.COMMENT:
@@ -109,15 +109,36 @@ class TokenStream:
 
 class CodeElementStream:
 
-    def __init__(self, tokens):
-        self.elements = tokens
+    def __init__(self, tokens: TokenStream):
+
+        tokens.remove_comments()
+        self.elements = tokens.tokens
+        self.branched_tokens = []
+        self.branched_indices = []
         self.idx = 0
 
     def branch(self):
+        self.branched_tokens.append([])
+        self.branched_indices.append(self.idx)
+
+    def merge(self, code_element_class):
+        code_element = code_element_class.__call__(self.branched_tokens.pop())
+        idx_prev = self.branched_indices.pop()
+        self.elements = self.elements[:idx_prev] + \
+                        [code_element] +\
+                        self.elements[self.idx:]
+        self.idx = idx_prev
         pass
 
-    def merge(self, elements):
-        pass
+    def get_current(self):
+        try:
+            return self.elements[self.idx]
+        except IndexError:
+            return None
+
+    def inc(self):
+        self.branched_tokens[-1].append(self.get_current())
+        self.idx += 1
 
     def __iter__(self):
         return self
@@ -131,3 +152,30 @@ class CodeElementStream:
         finally:
             self.idx += 1
 
+
+class GrammarStream:
+
+    def __init__(self, grammar):
+        self.grammar = grammar
+        self.idx = 0
+
+    def get_current(self):
+        try:
+            return self.grammar[self.idx]
+        except IndexError:
+            return None
+
+    def inc(self):
+        self.idx += 1
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            element = self.grammar[self.idx]
+            return element
+        except IndexError:
+            raise StopIteration
+        finally:
+            self.idx += 1
