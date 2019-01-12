@@ -29,6 +29,7 @@ class CodeElement:
         self.grammars = []
 
     def parse_possible(self, code_stream: CodeElementStream):
+        """Try to apply this class to all fitting elements"""
         for grammar in self.grammars:
             grammar_stream = GrammarStream(grammar)
             code_stream.branch()
@@ -40,7 +41,7 @@ class CodeElement:
                 token = code_stream.get_current()
                 if element is None:
                     code_stream.merge(self)
-                    return
+                    break
                 if token is None:
                     break
                 element_type = element[0]
@@ -51,13 +52,17 @@ class CodeElement:
                     element_counts = Single
 
                 if element_type is Coherency:
-                    element_specification: CodeElement
-                    element_specification().parse_possible(code_stream)
+                    if not isinstance(token, element_specification):
+                        element_specification: CodeElement
+                        element_specification().parse_possible(code_stream)
                 elif element_type is Token:
                     if token.type != element_specification:
                         token_fits_element = False
                 elif element_type is SIGNS:
                     if token.value is not element_specification:
+                        token_fits_element = False
+                elif element_type is OPERATORS:
+                    if token.value != element_specification:
                         token_fits_element = False
 
                 if element_counts == Optional:
@@ -75,6 +80,7 @@ class CodeElement:
                         # next token next element
                     else:
                         is_possible = False
+                        code_stream.pop()
                         # Stop (wrong grammar)
                 elif element_counts == Multiple:
                     if token_fits_element:
@@ -137,7 +143,8 @@ class Calculation(CodeElement):
 
     def __init__(self, *args, **kwargs):
         super().__init__()
-        self.grammars = [[(Coherency, Number)]]
+        self.grammars = [[(Coherency, Number)],
+                         [(Coherency, self.__class__), (OPERATORS, OPERATORS["PLUS"]), (Coherency, self.__class__)]]
         self.l_value = 0
         self.r_value = None
         self.sign = None

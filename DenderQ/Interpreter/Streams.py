@@ -130,6 +130,11 @@ class CodeElementStream:
         self.idx = idx_prev
         pass
 
+    def pop(self):
+        branched_tokens = self.branched_tokens.pop()
+        self.idx = self.branched_indices.pop()
+        return branched_tokens
+
     def get_current(self):
         try:
             return self.elements[self.idx]
