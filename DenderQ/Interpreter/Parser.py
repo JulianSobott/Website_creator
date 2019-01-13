@@ -11,10 +11,10 @@
 """
 
 from Logging import logger
-from Streams import TokenStream, CodeElementStream, GrammarStream
-from Tokenizer import Token
-from Constants import *
-from MathExpressions import shunting_yard_algorithm, reverse_polish
+from .Streams import TokenStream, CodeElementStream, GrammarStream
+from .Tokenizer import Token
+from .Constants import *
+from .MathExpressions import shunting_yard_algorithm, reverse_polish
 
 
 __all__ = ["create_abstract_code"]
@@ -31,6 +31,7 @@ class CodeElement:
 
     def parse_possible(self, code_stream: CodeElementStream):
         """Try to apply this class to all fitting elements"""
+        was_successful = False
         for grammar in self.grammars:
             grammar_stream = GrammarStream(grammar)
             code_stream.branch()
@@ -42,6 +43,7 @@ class CodeElement:
                 token = code_stream.get_current()
                 if element is None:
                     code_stream.merge(self)
+                    was_successful = True
                     break
                 if token is None:
                     break
@@ -100,7 +102,7 @@ class CodeElement:
                     else:
                         grammar_stream.inc()
                         # next element
-        return is_possible
+        return was_successful
 
     def __call__(self, *args, **kwargs):
         cls = self.__class__
@@ -113,10 +115,22 @@ class CodeElement:
 class CodeBlock:
 
     def __init__(self, code_stream: CodeElementStream):
-        first_token = code_stream.get_current()
-        if first_token.type == Token.KEYWORD:
-            if first_token.value == "var":
-                Expression().parse_possible(code_stream)
+        token = code_stream.get_current()
+        while token:
+            if isinstance(token, Token):
+                while token and token.type == Token.EOL:
+                    token = code_stream.get_current()
+                    if token and token.type == Token.EOL:
+                        code_stream.idx += 1
+                if token is None:
+                    break
+                if token.type == Token.KEYWORD:
+                    if token.value == "var":
+                        Expression().parse_possible(code_stream)
+                else:
+                    ConstantsBlock().parse_possible(code_stream)
+
+            token = code_stream.get_next()
         self.elements = code_stream.elements[:code_stream.idx + 1]
 
     def __repr__(self):
@@ -127,27 +141,55 @@ class Coherency:
     pass
 
 
-class Constant:
+class Constant(CodeElement):
 
-    def __init__(self):
-        self.grammar = [[(Token, Token.IDENTIFIER), (SIGNS, SIGNS["COLON"]), (Coherency, Expression)]]
+    def __init__(self, *args):
+        super().__init__()
+        self.grammars = [[(Token, Token.IDENTIFIER), (SIGNS, SIGNS["COLON"]), (Coherency, Calculation),
+                         (Token, Token.EOL)],
+                        [(Token, Token.IDENTIFIER), (SIGNS, SIGNS["COLON"]), (Token, Token.IDENTIFIER, Multiple),
+                         (Token, Token.EOL)]
+                        ]
+        self.args = args
+        if len(args) > 0:
+            tokens = args[0]
+            self.identifier = tokens[0]
+            self.value = tokens[2]
+
+    def __repr__(self):
+        try:
+            return str(self.identifier.value) + ": " + str(self.value) + "\n"
+        except Exception:
+            return str(self.identifier.value) + ": " + str(self.value) + "\n"
 
 
-class Constants:
-    grammars = [
-        [
-            (Token, Token.IDENTIFIER), (SIGNS, SIGNS["COLON"]), (Token, Token.IDENTIFIER), (Token, Token.EOL),
-            (Coherency, "self")
-        ],
-        [
-            (None,)
-        ]
-               ]
+class Constants(CodeElement):
+
+    def __init__(self, *args):
+        super().__init__()
+        self.grammars = [[(Token, Token.EOL, Optional), (Coherency, Constant, Multiple)]]
+        self.args = args
+        if len(args) > 0:
+            tokens = args[0]
+            self.constants = tokens
+
+    def __repr__(self):
+        return "".join(str(c) for c in self.constants)
 
 
-class ConstantsBlock:
-    grammars = [[(Token, Token.IDENTIFIER, Optional), (SIGNS, SIGNS["L_BRACES"]), (Token, Token.EOL, Optional),
+class ConstantsBlock(CodeElement):
+
+    def __init__(self, *args):
+        super().__init__()
+        self.grammars = [[(Token, Token.IDENTIFIER, Optional), (SIGNS, SIGNS["L_BRACES"]), (Token, Token.EOL, Optional),
                 (Coherency, Constants), (Token, Token.EOL, Optional), (SIGNS, SIGNS["R_BRACES"])]]
+        self.args = args
+        if len(args) > 0:
+            tokens = args[0]
+            self.constants = tokens[2]  # 1 **** with EOL 2 TODO
+
+    def __repr__(self):
+        return "{ " + str(self.constants) + " }"
 
 
 class Expression(CodeElement):
@@ -172,11 +214,6 @@ class Calculation(CodeElement):
 
     def __init__(self, *args, **kwargs):
         super().__init__()
-        self.grammars = [[(Coherency, Number)],
-                         [(SIGNS, SIGNS["L_PARENTHESES"], Optional), (Coherency, self.__class__),
-                          (OPERATORS, self.valid_operations), (Coherency, self.__class__),
-                          (SIGNS, SIGNS["L_PARENTHESES"], Optional)]
-                         ]
         if len(args) > 0:
             self.intermediate_format = args[0]
 
@@ -197,7 +234,10 @@ class Calculation(CodeElement):
         return reverse_polish(self.intermediate_format)
 
     def __repr__(self):
-        return "Calculation: Result = " + str(self.get_result())
+        try:
+            return "Calculation: Result = " + str(self.get_result())
+        except IndexError:
+            return f"Calculation: {str(self.intermediate_format)}"
 
 
 class Number(CodeElement):

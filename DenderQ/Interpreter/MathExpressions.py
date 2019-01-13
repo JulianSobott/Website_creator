@@ -29,6 +29,8 @@ def shunting_yard_algorithm(tokens: list):
         token: Token = token_list.pop(0)
         if token.type == Token.NUMBER:
             output_queue.append(token)
+        elif token.type == Token.IDENTIFIER:
+            output_queue.append(token)
         elif token.type == Token.OPERATOR:
             try:
                 top_operator = operator_stack[-1]

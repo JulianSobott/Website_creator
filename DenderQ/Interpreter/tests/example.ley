@@ -1,4 +1,8 @@
-var x = (4 + 18/(9- 3))
+{
+NAME: 10
+John: Mayer
+Tuple : 10 + 10
+}
 /*
 //Global anonymous Constants
 {
@@ -7,6 +11,7 @@ SURNAME: Walter
 AGE: 12
 FULL_NAME: name + surname
 }
+
 
 //Named Constants
 Person {

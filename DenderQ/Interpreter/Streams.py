@@ -149,6 +149,12 @@ class CodeElementStream:
     def replace_branched_tokens(self, new_tokens):
         self.branched_tokens[-1] = new_tokens
 
+    def get_next(self):
+        try:
+            return self.__next__()
+        except StopIteration:
+            return None
+
     def __iter__(self):
         return self
 
