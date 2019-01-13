@@ -144,6 +144,10 @@ class CodeElementStream:
     def inc(self):
         self.branched_tokens[-1].append(self.get_current())
         self.idx += 1
+        return self.get_current()
+
+    def replace_branched_tokens(self, new_tokens):
+        self.branched_tokens[-1] = new_tokens
 
     def __iter__(self):
         return self

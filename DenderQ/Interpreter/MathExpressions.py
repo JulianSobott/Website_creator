@@ -21,12 +21,10 @@ from Logging import logger
 
 
 def shunting_yard_algorithm(tokens: list):
-    # Init
     token_list = tokens.copy()
     operator_stack = []
     output_queue = []
 
-    # Algorithm
     while len(token_list) > 0:
         token: Token = token_list.pop(0)
         if token.type == Token.NUMBER:
@@ -59,9 +57,6 @@ def shunting_yard_algorithm(tokens: list):
     while len(operator_stack) > 0:
         operator = operator_stack.pop()
         output_queue.append(operator)
-    logger.debug("output_que: %s", str(output_queue))
-    logger.debug("operator_stack: %s", str(operator_stack))
-    logger.debug("token_list: %s", str(token_list))
     return output_queue
 
 

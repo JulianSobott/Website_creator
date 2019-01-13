@@ -14,6 +14,7 @@ from Logging import logger
 from Streams import TokenStream, CodeElementStream, GrammarStream
 from Tokenizer import Token
 from Constants import *
+from MathExpressions import shunting_yard_algorithm, reverse_polish
 
 
 __all__ = ["create_abstract_code"]
@@ -161,22 +162,25 @@ class Calculation(CodeElement):
                           (OPERATORS, self.valid_operations), (Coherency, self.__class__),
                           (SIGNS, SIGNS["L_PARENTHESES"], Optional)]
                          ]
-        self.l_value = 0
-        self.r_value = None
-        self.sign = None
         if len(args) > 0:
-            tokens = args[0]
-            if len(tokens) >= 1:
-                self.l_value = tokens[0]
-            if len(tokens) > 1:
-                self.sign = tokens[1]
-                self.r_value = tokens[2]
+            self.intermediate_format = args[0]
+
+    def parse_possible(self, code_stream: CodeElementStream):
+        code_stream.branch()
+        calculation_tokens = []
+        token = code_stream.get_current()
+        while token and token.type != Token.EOL:
+            calculation_tokens.append(token)
+            token = code_stream.inc()
+        ordered_tokens = shunting_yard_algorithm(calculation_tokens)
+        code_stream.replace_branched_tokens(ordered_tokens)
+        code_stream.merge(self)
+
+    def get_result(self) -> Token:
+        return reverse_polish(self.intermediate_format)
 
     def __repr__(self):
-        if self.r_value:
-            return "(" + str(self.l_value) + str(self.sign.value) + str(self.r_value) + ")"
-        else:
-            return str(self.l_value)
+        return "Calculation: Result = " + str(self.get_result())
 
 
 class Number(CodeElement):
