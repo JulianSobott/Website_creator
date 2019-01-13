@@ -8,6 +8,7 @@
 
 @internal_use:
 
+@TODO: Set line Attribute at Tokens
 """
 
 from Constants import KEYWORDS, SIGNS, OPERATORS, get_by_value
@@ -200,6 +201,7 @@ class Token:
         self.value = value
         self.idx_start = idx_start
         self.idx_end = idx_end
+        self.line = 0
         if token_type == self.OPERATOR or token_type == self.SIGN:
             self.sign_name = sign_name
 

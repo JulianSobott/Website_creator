@@ -10,7 +10,7 @@
 
 """
 
-__all__ = ["add_error", "UnknownCharacterSequence", "MissingCharacter"]
+__all__ = ["add_error", "UnknownCharacterSequence", "MissingCharacter", "UndefinedIdentifier"]
 
 
 class Error:
@@ -41,6 +41,15 @@ class MissingCharacter(Error):
         super().__init__(file_name, line, idx)
         self.missing_char = missing_char
         self.message = f"{self.NAME}: '{self.missing_char}' "
+
+
+class UndefinedIdentifier(Error):
+    NAME = "UndefinedVariable"
+
+    def __init__(self, identifier_name, file_name, line, idx):
+        super().__init__(file_name, line, idx)
+        self.undefined_identifier = identifier_name
+        self.message = f"{self.NAME}: '{self.undefined_identifier}'"
 
 
 class Errors:
