@@ -11,22 +11,34 @@
 """
 KEYWORDS = []
 OPERATORS = {}
+PRECEDENCES = {}
 SIGNS = {}
 
 
-__all__ = ["KEYWORDS", "SIGNS", "OPERATORS"]
+__all__ = ["KEYWORDS", "SIGNS", "OPERATORS", "PRECEDENCES", "get_by_value"]
+
+unary = 1 << 0
+binary = 1 << 1
 
 
 def add_keyword(word):
     KEYWORDS.append(word)
 
 
-def add_operator(word, name):
+def add_operator(word, name, precedence):
     OPERATORS[name] = word
+    PRECEDENCES[name] = precedence
 
 
 def add_sign(word, name):
     SIGNS[name] = word
+
+
+def get_by_value(dict_, value):
+    for key in dict_:
+        if dict_[key] == value:
+            return key
+    return None
 
 # Keywords
 
@@ -57,18 +69,21 @@ add_sign(":", "COLON")
 
 
 # operators
-add_operator("!", "NOT")
-add_operator("-", "MINUS")
-add_operator("+", "PLUS")
-add_operator("*", "STAR")
-add_operator("/", "SLASH")
-add_operator("=", "EQ")
-add_operator("&", "AND")
-add_operator("|", "OR")
-add_operator("%", "PERCENT")
-add_operator(">", "GT")
-add_operator(">=", "GE")
-add_operator("==", "EEQ")
-add_operator("!=", "NE")
-add_operator("<", "LT")
-add_operator("<=", "LE")
+# precedence: 0 = low -- 20 high
+add_operator("!", "NOT", 20)
+# add_operator("++", "INCREMENT", )
+# add_operator("--", "DECREMENT")
+add_operator("*", "STAR", 18)
+add_operator("/", "SLASH", 18)
+add_operator("%", "PERCENT", 18)
+add_operator("-", "MINUS", 15)
+add_operator("+", "PLUS", 15)
+add_operator("<", "LT", 10)
+add_operator("<=", "LE", 10)
+add_operator(">", "GT", 10)
+add_operator(">=", "GE", 10)
+add_operator("==", "EEQ", 9)
+add_operator("!=", "NE", 9)
+add_operator("&", "AND", 8)
+add_operator("|", "OR", 6)
+add_operator("=", "EQ", 2)

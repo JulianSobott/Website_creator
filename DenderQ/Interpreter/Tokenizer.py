@@ -10,7 +10,7 @@
 
 """
 
-from Constants import KEYWORDS, SIGNS, OPERATORS
+from Constants import KEYWORDS, SIGNS, OPERATORS, get_by_value
 from Error_handler import *
 from Globals import get_current_file_name
 from Streams import CharStream
@@ -88,6 +88,7 @@ def get_comment(char, char_stream):
     idx_end = idx_start + 1
     next_char = char_stream.get_next()
     if next_char not in [OPERATORS["STAR"], OPERATORS["SLASH"]]:
+        char_stream.load_prev()
         return None
     is_single_line = next_char == OPERATORS["SLASH"]
     closed = False
@@ -131,9 +132,11 @@ def get_sign(char, char_stream, allowed_signs, is_operator):
     finally:
         if is_operator:
             token_type = Token.OPERATOR
+            sign_name = get_by_value(OPERATORS, signs)
         else:
             token_type = Token.SIGN
-        return Token(token_type, signs, idx_start, idx_end)
+            sign_name = get_by_value(SIGNS, signs)
+        return Token(token_type, signs, idx_start, idx_end, sign_name=sign_name)
 
 
 def get_number(char, char_stream):
@@ -192,11 +195,13 @@ class Token:
     COMMENT = (6, "COMMENT")
     EOL = (7, "END_OF_LINE")
 
-    def __init__(self, token_type, value, idx_start, idx_end):
+    def __init__(self, token_type, value, idx_start, idx_end, sign_name=None):
         self.type = token_type
         self.value = value
         self.idx_start = idx_start
         self.idx_end = idx_end
+        if token_type == self.OPERATOR or token_type == self.SIGN:
+            self.sign_name = sign_name
 
     def __repr__(self):
         return f"{self.type[1]}: {self.value}"
