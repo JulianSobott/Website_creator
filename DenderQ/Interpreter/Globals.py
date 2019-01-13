@@ -12,8 +12,10 @@
 import os
 
 from Error_handler import UndefinedIdentifier, add_error
+from Logging import logger
 
 current_file_path = ""
+_file_write_buffer = ""
 
 
 def get_current_file_name():
@@ -40,3 +42,12 @@ class SymbolTable:
             return self.symbols[name]
         except KeyError:
             add_error(UndefinedIdentifier(name, get_current_file_name(), identifier.line, identifier.idx_start))
+
+
+def buffer_to_file(text):
+    global _file_write_buffer   # FIXME: Remove globals
+    _file_write_buffer += text
+
+
+def write_buffer_to_file():
+    logger.debug(_file_write_buffer)

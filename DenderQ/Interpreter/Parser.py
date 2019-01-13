@@ -28,6 +28,7 @@ from .Streams import TokenStream, CodeElementStream, GrammarStream
 from .Tokenizer import Token
 from .Constants import *
 from .MathExpressions import shunting_yard_algorithm, reverse_polish
+from .Globals import SymbolTable, buffer_to_file
 
 
 __all__ = ["create_abstract_code"]
@@ -159,6 +160,17 @@ class CodeBlock:
                         parsed = Write().parse_possible(code_stream)
             token = code_stream.get_next()
         self.elements = code_stream.elements[:code_stream.idx + 1]
+
+    def remove_eols(self):
+        temp_elements = []
+        for element in self.elements:
+            if not(isinstance(element, Token) and element.type == Token.EOL):
+                temp_elements.append(element)
+        self.elements = temp_elements
+
+    def execute(self):
+        for element in self.elements:
+            element.execute()
 
     def __repr__(self):
         return str(self.elements)
@@ -330,6 +342,21 @@ class Write(CodeElement):
     def __repr__(self):
         return "Write: " + "".join(str(c) for c in self.args)
 
+    def execute(self):
+        text = ""
+        idx_last_end = 0
+        for arg in self.args:
+            if isinstance(arg, Token):
+                value = str(arg.value)
+                fill_spaces = max(arg.idx_start - idx_last_end - 1, 0)
+                text += value.rjust(len(value) + fill_spaces)
+                idx_last_end = arg.idx_end
+            else:
+                temp_text = arg.execute()
+                if temp_text:
+                    text += str(temp_text)
+        buffer_to_file(text)
+
 
 class Replaceable(CodeElement):
 
@@ -348,4 +375,5 @@ def create_abstract_code(tokens):
     token_stream = TokenStream(tokens)
     code_stream = CodeElementStream(token_stream)
     code_block = CodeBlock(code_stream)
+    code_block.remove_eols()
     return code_block

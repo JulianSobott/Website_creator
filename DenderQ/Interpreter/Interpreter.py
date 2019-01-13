@@ -23,6 +23,8 @@ def parse_file(in_file_path, out_file_path):
     text = get_file_content(in_file_path)
     tokens = Tokenizer.create_tokens(text)
     code_block = Parser.create_abstract_code(tokens)
+    code_block.execute()
+    Globals.write_buffer_to_file()
     logger.debug(code_block)
 
 
