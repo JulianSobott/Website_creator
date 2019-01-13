@@ -1,4 +1,4 @@
-4 + 18/(9- 3)
+var x = (4 + 18/(9- 3))
 /*
 //Global anonymous Constants
 {

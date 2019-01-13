@@ -22,10 +22,8 @@ def parse_file(in_file_path, out_file_path):
     Globals.current_file_path = in_file_path
     text = get_file_content(in_file_path)
     tokens = Tokenizer.create_tokens(text)
-    ordered_tokens = MathExpressions.shunting_yard_algorithm(tokens)
-    MathExpressions.reverse_polish(ordered_tokens)
     code_block = Parser.create_abstract_code(tokens)
-    logger.debug(tokens)
+    logger.debug(code_block)
 
 
 def get_file_content(file_path):

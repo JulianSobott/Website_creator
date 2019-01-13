@@ -56,8 +56,7 @@ class CodeElement:
 
                 if element_type is Coherency:
                     element_class = element_specification[0]
-                    if isinstance(token, CodeElement):
-                        token_fits_element = element_class().parse_possible(code_stream)
+                    token_fits_element = element_class().parse_possible(code_stream)
                 elif element_type is Token:
                     try:
                         if token.type not in element_specification:
@@ -71,6 +70,9 @@ class CodeElement:
                     except AttributeError:
                         token_fits_element = False
                 elif element_type is OPERATORS:
+                    if token.value not in element_specification:
+                        token_fits_element = False
+                elif element_type is KEYWORDS:
                     if token.value not in element_specification:
                         token_fits_element = False
 
@@ -102,8 +104,6 @@ class CodeElement:
 
     def __call__(self, *args, **kwargs):
         cls = self.__class__
-        logger.debug(args)
-        logger.debug(kwargs)
         obj = self.__new__(cls)
         if obj is not None and issubclass(obj.__class__, cls):
             obj.__init__(*args)
@@ -112,10 +112,15 @@ class CodeElement:
 
 class CodeBlock:
 
-    def __init__(self, code_stream):
-        self.elements = []
-        Calculation().parse_possible(code_stream)
+    def __init__(self, code_stream: CodeElementStream):
+        first_token = code_stream.get_current()
+        if first_token.type == Token.KEYWORD:
+            if first_token.value == "var":
+                Expression().parse_possible(code_stream)
         self.elements = code_stream.elements[:code_stream.idx + 1]
+
+    def __repr__(self):
+        return str(self.elements)
 
 
 class Coherency:
@@ -129,7 +134,7 @@ class Constant:
 
 
 class Constants:
-    grammar = [
+    grammars = [
         [
             (Token, Token.IDENTIFIER), (SIGNS, SIGNS["COLON"]), (Token, Token.IDENTIFIER), (Token, Token.EOL),
             (Coherency, "self")
@@ -141,12 +146,22 @@ class Constants:
 
 
 class ConstantsBlock:
-    grammar = [[(Token, Token.IDENTIFIER, Optional), (SIGNS, SIGNS["L_BRACES"]), (Token, Token.EOL, Optional),
+    grammars = [[(Token, Token.IDENTIFIER, Optional), (SIGNS, SIGNS["L_BRACES"]), (Token, Token.EOL, Optional),
                 (Coherency, Constants), (Token, Token.EOL, Optional), (SIGNS, SIGNS["R_BRACES"])]]
 
 
-class Expression:
-    pass
+class Expression(CodeElement):
+
+    def __init__(self, *args):
+        super().__init__()
+        self.grammars = [[(KEYWORDS, "var"), (Token, Token.IDENTIFIER), (OPERATORS, OPERATORS["EQ"]), (Coherency, Calculation)]]
+        if len(args) > 0:
+            tokens = args[0]
+            self.identifier = tokens[1]
+            self.r_value = tokens[3]
+
+    def __repr__(self):
+        return str(self.identifier) + " = " + str(self.r_value)
 
 
 class Calculation(CodeElement):
@@ -166,6 +181,7 @@ class Calculation(CodeElement):
             self.intermediate_format = args[0]
 
     def parse_possible(self, code_stream: CodeElementStream):
+        is_valid = True
         code_stream.branch()
         calculation_tokens = []
         token = code_stream.get_current()
@@ -175,6 +191,7 @@ class Calculation(CodeElement):
         ordered_tokens = shunting_yard_algorithm(calculation_tokens)
         code_stream.replace_branched_tokens(ordered_tokens)
         code_stream.merge(self)
+        return is_valid
 
     def get_result(self) -> Token:
         return reverse_polish(self.intermediate_format)
