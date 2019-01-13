@@ -3,10 +3,23 @@
 @created: 10.01.2019
 @brief:
 @description:
+implemented:
+    + ConstantsBlock
+    + Assignment
+    + Calculation (only with keyword var)
+missing:
+    - html block
+    - Calculations (without keyword var. Another keyword or function)
+    - for loops
+    - if condition
+    - conditions
+    - includes
+    - functions
 
 @external_use:
 
 @internal_use:
+
 
 """
 
@@ -126,7 +139,7 @@ class CodeBlock:
                     break
                 if token.type == Token.KEYWORD:
                     if token.value == "var":
-                        Expression().parse_possible(code_stream)
+                        Assignment().parse_possible(code_stream)
                 else:
                     ConstantsBlock().parse_possible(code_stream)
 
@@ -200,11 +213,11 @@ class ConstantsBlock(CodeElement):
             return "{ " + str(self.constants) + " }"
 
 
-class Expression(CodeElement):
+class Assignment(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(KEYWORDS, "var"), (Token, Token.IDENTIFIER), (OPERATORS, OPERATORS["EQ"]), (Coherency, Calculation)]]
+        self.grammars = [[(KEYWORDS, "var"), (Token, Token.IDENTIFIER), (OPERATORS, OPERATORS["EQ"]), (Coherency, Expression)]]
         if len(args) > 0:
             tokens = args[0]
             self.identifier = tokens[1]
@@ -212,6 +225,19 @@ class Expression(CodeElement):
 
     def __repr__(self):
         return str(self.identifier) + " = " + str(self.r_value)
+
+
+class Expression(CodeElement):
+
+    def __init__(self, *args):
+        super().__init__()
+        self.grammars = [[(Coherency, Calculation)]]
+        if len(args) > 0:
+            tokens = args[0]
+            self.value = tokens[0]
+
+    def __repr__(self):
+        return str(self.value)
 
 
 class Calculation(CodeElement):

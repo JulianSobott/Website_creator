@@ -1,9 +1,5 @@
-House{
-NAME: 10
-John: Mayer
-Tuple : 10 + 10
-}
-/*
+var x = 10 + 12
+/*<p {i}> {value}</p>
 //Global anonymous Constants
 {
 NAME: John
