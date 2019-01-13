@@ -168,7 +168,6 @@ class Constants(CodeElement):
     def __init__(self, *args):
         super().__init__()
         self.grammars = [[(Token, Token.EOL, Optional), (Coherency, Constant, Multiple)]]
-        self.args = args
         if len(args) > 0:
             tokens = args[0]
             self.constants = tokens
@@ -183,13 +182,22 @@ class ConstantsBlock(CodeElement):
         super().__init__()
         self.grammars = [[(Token, Token.IDENTIFIER, Optional), (SIGNS, SIGNS["L_BRACES"]), (Token, Token.EOL, Optional),
                 (Coherency, Constants), (Token, Token.EOL, Optional), (SIGNS, SIGNS["R_BRACES"])]]
-        self.args = args
         if len(args) > 0:
             tokens = args[0]
-            self.constants = tokens[2]  # 1 **** with EOL 2 TODO
+            with_identifier = 0
+            if isinstance(tokens[0], Token) and tokens[0].type == Token.IDENTIFIER:
+                self.global_identifier = tokens[0]
+                with_identifier = 1
+            if isinstance(tokens[1 + with_identifier], Token) and tokens[1 + with_identifier].type == Token.EOL:
+                self.constants = tokens[2 + with_identifier]
+            else:
+                self.constants = tokens[1 + with_identifier]
 
     def __repr__(self):
-        return "{ " + str(self.constants) + " }"
+        try:
+            return str(self.global_identifier.value) + "{ " + str(self.constants) + " }"
+        except AttributeError:
+            return "{ " + str(self.constants) + " }"
 
 
 class Expression(CodeElement):
