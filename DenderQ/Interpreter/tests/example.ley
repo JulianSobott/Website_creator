@@ -1,4 +1,4 @@
-var x = 10 + 12
+<p {i}> {value}</p>
 /*<p {i}> {value}</p>
 //Global anonymous Constants
 {

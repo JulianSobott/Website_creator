@@ -34,6 +34,7 @@ __all__ = ["create_abstract_code"]
 
 Optional = 0
 Single = 1
+MinSingle = 2
 Multiple = float("inf")
 
 
@@ -95,26 +96,38 @@ class CodeElement:
                     if token_fits_element:
                         code_stream.inc()
                         grammar_stream.inc()
-                        # next token next element
                     else:
                         grammar_stream.inc()
-                        # next element
                 elif element_counts == Single:
                     if token_fits_element:
                         code_stream.inc()
                         grammar_stream.inc()
-                        # next token next element
                     else:
                         is_possible = False
                         code_stream.pop()
-                        # Stop (wrong grammar)
+                elif element_counts == MinSingle:
+                    if token_fits_element:
+                        code_stream.inc()
+                        hit_once = True
+                    else:
+                        stop = False
+                        try:
+                            if hit_once:
+                                grammar_stream.inc()
+                            else:
+                                stop = True
+                        except NameError:
+                            stop = True
+                        if stop:
+                            is_possible = False
+                            code_stream.pop()
+                        else:
+                            grammar_stream.inc()
                 elif element_counts == Multiple:
                     if token_fits_element:
                         code_stream.inc()
-                        # next token
                     else:
                         grammar_stream.inc()
-                        # next element
         return was_successful
 
     def __call__(self, *args, **kwargs):
@@ -141,8 +154,9 @@ class CodeBlock:
                     if token.value == "var":
                         Assignment().parse_possible(code_stream)
                 else:
-                    ConstantsBlock().parse_possible(code_stream)
-
+                    parsed = ConstantsBlock().parse_possible(code_stream)
+                    if not parsed:
+                        parsed = Write().parse_possible(code_stream)
             token = code_stream.get_next()
         self.elements = code_stream.elements[:code_stream.idx + 1]
 
@@ -160,7 +174,7 @@ class Constant(CodeElement):
         super().__init__()
         self.grammars = [[(Token, Token.IDENTIFIER), (SIGNS, SIGNS["COLON"]), (Coherency, Calculation),
                          (Token, Token.EOL)],
-                        [(Token, Token.IDENTIFIER), (SIGNS, SIGNS["COLON"]), (Token, Token.IDENTIFIER, Multiple),
+                        [(Token, Token.IDENTIFIER), (SIGNS, SIGNS["COLON"]), (Token, Token.IDENTIFIER, MinSingle),
                          (Token, Token.EOL)]
                         ]
         self.args = args
@@ -180,7 +194,7 @@ class Constants(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(Token, Token.EOL, Optional), (Coherency, Constant, Multiple)]]
+        self.grammars = [[(Token, Token.EOL, Optional), (Coherency, Constant, MinSingle)]]
         if len(args) > 0:
             tokens = args[0]
             self.constants = tokens
@@ -256,7 +270,7 @@ class Calculation(CodeElement):
         code_stream.branch()
         calculation_tokens = []
         token = code_stream.get_current()
-        while token and token.type != Token.EOL:
+        while token and (not isinstance(token, Token) or (token.type != Token.EOL and token.value != SIGNS["R_BRACES"])):
             calculation_tokens.append(token)
             token = code_stream.inc()
         ordered_tokens = shunting_yard_algorithm(calculation_tokens)
@@ -285,6 +299,49 @@ class Number(CodeElement):
 
     def __repr__(self):
         return self.value
+
+
+class Write(CodeElement):
+
+    def __init__(self, *args):
+        super().__init__()
+        if len(args) > 0:
+            self.args = args[0]
+
+    def parse_possible(self, code_stream: CodeElementStream):
+        is_valid = True
+        code_stream.branch()
+        write_tokens = []
+        token = code_stream.get_current()
+        if not isinstance(token, Token):
+            code_stream.pop()
+            return False
+        while token and token.type != Token.EOL:
+            if token.type == Token.SIGN and token.value == SIGNS["L_BRACES"]:
+                parsed = Replaceable().parse_possible(code_stream)
+                if not parsed:
+                    write_tokens.append(token)
+            else:
+                write_tokens.append(token)
+            token = code_stream.inc()
+        code_stream.merge(self)
+        return is_valid
+
+    def __repr__(self):
+        return "Write: " + "".join(str(c) for c in self.args)
+
+
+class Replaceable(CodeElement):
+
+    def __init__(self, *args):
+        super().__init__()
+        self.grammars = [[(SIGNS, SIGNS["L_BRACES"]), (Coherency, Expression), (SIGNS, SIGNS["R_BRACES"])]]
+        if len(args) > 0:
+            tokens = args[0]
+            self.value = tokens[1:-1]
+
+    def __repr__(self):
+        return "Replaceable: " + "".join(str(c) for c in self.value)
 
 
 def create_abstract_code(tokens):
