@@ -1,4 +1,10 @@
-for i, name in ["Hello", "World"] {}
+{
+NAME: John
+SURNAME: Walter
+AGE: 12
+FULL_NAME: name + surname
+}
+var test = 10 + 20 / 2
 /*<p {i}> {value}</p>
 //Global anonymous Constants
 {

@@ -28,7 +28,7 @@ from .Streams import TokenStream, CodeElementStream, GrammarStream
 from .Tokenizer import Token
 from .Constants import *
 from .MathExpressions import shunting_yard_algorithm, reverse_polish
-from .Globals import SymbolTable, buffer_to_file
+from .Globals import symbolTable, buffer_to_file
 
 
 __all__ = ["create_abstract_code"]
@@ -209,6 +209,9 @@ class Constant(CodeElement):
             self.identifier = tokens[0]
             self.value = tokens[2]
 
+    def execute(self):
+        symbolTable.add(self.identifier, self.value)
+
     def __repr__(self):
         try:
             return str(self.identifier.value) + ": " + str(self.value) + "\n"
@@ -224,6 +227,10 @@ class Constants(CodeElement):
         if len(args) > 0:
             tokens = args[0]
             self.constants = tokens
+
+    def execute(self):
+        for constant in self.constants:
+            constant.execute()
 
     def __repr__(self):
         return "".join(str(c) for c in self.constants)
@@ -246,6 +253,11 @@ class ConstantsBlock(CodeElement):
             else:
                 self.constants = tokens[1 + with_identifier]
 
+    def execute(self):
+        # Maybe add new symbolTable part here with Name self.global_identifier
+        self.constants.execute()
+        # And go to global back here
+
     def __repr__(self):
         try:
             return str(self.global_identifier.value) + "{ " + str(self.constants) + " }"
@@ -264,6 +276,9 @@ class Assignment(CodeElement):
             self.identifier = tokens[1]
             self.r_value = tokens[3]
 
+    def execute(self):
+        symbolTable.set(self.identifier, self.r_value)
+
     def __repr__(self):
         return str(self.identifier) + " = " + str(self.r_value)
 
@@ -277,6 +292,12 @@ class Expression(CodeElement):
         if len(args) > 0:
             tokens = args[0]
             self.value = tokens[0]
+
+    def execute(self):
+        if isinstance(self.value, Calculation):
+            return self.value.execute()
+        elif isinstance(self.value, List):
+            return self.value
 
     def __repr__(self):
         return str(self.value)
@@ -299,8 +320,8 @@ class Calculation(CodeElement):
         calculation_tokens = []
         token = code_stream.get_current()
         while token and (not isinstance(token, Token) or (token.type != Token.EOL and token.value != SIGNS["R_BRACES"])):
-            if ((isinstance(token, Token) and (token.type == Token.IDENTIFIER or token.value in OPERATORS.values()))
-                    or isinstance(token, Number)):
+            if (isinstance(token, Token) and (token.type == Token.IDENTIFIER or token.value in OPERATORS.values()
+                                              or token.type == Token.NUMBER)):
                 calculation_tokens.append(token)
                 token = code_stream.inc()
             else:
@@ -313,12 +334,12 @@ class Calculation(CodeElement):
             code_stream.merge(self)
         return is_valid
 
-    def get_result(self) -> Token:
+    def execute(self) -> Token:
         return reverse_polish(self.intermediate_format)
 
     def __repr__(self):
         try:
-            return "Calculation: Result = " + str(self.get_result())
+            return "Calculation: Result = " + str(self.execute())
         except IndexError:
             return f"Calculation: {str(self.intermediate_format)}"
 
@@ -331,6 +352,9 @@ class Number(CodeElement):
         if len(args) > 0:
             token = args[0][0]
             self.value = token.value
+
+    def execute(self):
+        return self.value
 
     def __repr__(self):
         return self.value
@@ -388,10 +412,13 @@ class Replaceable(CodeElement):
         self.grammars = [[(SIGNS, SIGNS["L_BRACES"]), (Coherency, Expression), (SIGNS, SIGNS["R_BRACES"])]]
         if len(args) > 0:
             tokens = args[0]
-            self.value = tokens[1:-1]
+            self.identifier = tokens[1:-1]
+
+    def execute(self):
+        return symbolTable.get(self.identifier)
 
     def __repr__(self):
-        return "Replaceable: " + "".join(str(c) for c in self.value)
+        return "Replaceable: " + "".join(str(c) for c in self.identifier)
 
 
 class ForInLoop(CodeElement):
@@ -400,7 +427,7 @@ class ForInLoop(CodeElement):
         super().__init__()
         self.grammars = [[(KEYWORDS, "for"), (Token, Token.IDENTIFIER), (SIGNS, SIGNS["COMMA"]),
                           (Token, Token.IDENTIFIER), (KEYWORDS, "in"), (Coherency, List), (SIGNS, SIGNS["L_BRACES"]),
-                           (SIGNS, SIGNS["R_BRACES"])]]
+                          (Coherency, CodeBlock), (SIGNS, SIGNS["R_BRACES"])]]
 
 
 class ListElement(CodeElement):

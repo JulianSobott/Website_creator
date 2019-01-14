@@ -30,8 +30,8 @@ class SymbolTable:
     def __init__(self):
         self.symbols = {}
 
-    def add(self, identifier, var_type="default"):
-        self.symbols[identifier.value] = None
+    def add(self, identifier, value=None, var_type="default"):
+        self.symbols[identifier.value] = value
 
     def set(self, identifier, value):
         self.symbols[identifier.value] = value
@@ -42,6 +42,12 @@ class SymbolTable:
             return self.symbols[name]
         except KeyError:
             add_error(UndefinedIdentifier(name, get_current_file_name(), identifier.line, identifier.idx_start))
+
+    def log_symbols(self):
+        logger.debug(self.symbols)
+
+
+symbolTable = SymbolTable()
 
 
 def buffer_to_file(text):
