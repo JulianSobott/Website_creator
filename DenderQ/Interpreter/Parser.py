@@ -139,9 +139,17 @@ class CodeElement:
         return obj
 
 
-class CodeBlock:
+class CodeBlock(CodeElement):
 
-    def __init__(self, code_stream: CodeElementStream):
+    def __init__(self, *args):
+        super().__init__()
+        if len(args) > 0:
+            tokens = args[0]
+            self.elements = tokens
+
+    def parse_possible(self, code_stream: CodeElementStream):
+        was_successful = True
+        code_stream.branch()
         token = code_stream.get_current()
         while token:
             if isinstance(token, Token):
@@ -158,8 +166,9 @@ class CodeBlock:
                     parsed = ConstantsBlock().parse_possible(code_stream)
                     if not parsed:
                         parsed = Write().parse_possible(code_stream)
-            token = code_stream.get_next()
-        self.elements = code_stream.elements[:code_stream.idx + 1]
+            token = code_stream.inc()
+        code_stream.merge(self)
+        return was_successful
 
     def remove_eols(self):
         temp_elements = []
@@ -374,6 +383,5 @@ class Replaceable(CodeElement):
 def create_abstract_code(tokens):
     token_stream = TokenStream(tokens)
     code_stream = CodeElementStream(token_stream)
-    code_block = CodeBlock(code_stream)
-    code_block.remove_eols()
-    return code_block
+    CodeBlock().parse_possible(code_stream)
+    return code_stream.elements[0]
