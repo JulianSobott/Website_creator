@@ -1,5 +1,4 @@
-Hello
-World
+for i, name in ["Hello", "World"] {}
 /*<p {i}> {value}</p>
 //Global anonymous Constants
 {

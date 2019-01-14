@@ -73,7 +73,10 @@ class CodeElement:
 
                 if element_type is Coherency:
                     element_class = element_specification[0]
-                    token_fits_element = element_class().parse_possible(code_stream)
+                    if type(token) == element_class:
+                        token_fits_element = True
+                    else:
+                        token_fits_element = element_class().parse_possible(code_stream)
                 elif element_type is Token:
                     try:
                         if token.type not in element_specification:
@@ -161,7 +164,9 @@ class CodeBlock(CodeElement):
                     break
                 if token.type == Token.KEYWORD:
                     if token.value == "var":
-                        Assignment().parse_possible(code_stream)
+                        parsed = Assignment().parse_possible(code_stream)
+                    elif token.value == "for":
+                        parsed = ForInLoop().parse_possible(code_stream)
                 else:
                     parsed = ConstantsBlock().parse_possible(code_stream)
                     if not parsed:
@@ -252,7 +257,8 @@ class Assignment(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(KEYWORDS, "var"), (Token, Token.IDENTIFIER), (OPERATORS, OPERATORS["EQ"]), (Coherency, Expression)]]
+        self.grammars = [[(KEYWORDS, "var"), (Token, Token.IDENTIFIER), (OPERATORS, OPERATORS["EQ"]),
+                          (Coherency, Expression)]]
         if len(args) > 0:
             tokens = args[0]
             self.identifier = tokens[1]
@@ -266,7 +272,8 @@ class Expression(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(Coherency, Calculation)]]
+        self.grammars = [[(Coherency, Calculation)],
+                         [(Coherency, List)]]
         if len(args) > 0:
             tokens = args[0]
             self.value = tokens[0]
@@ -292,11 +299,18 @@ class Calculation(CodeElement):
         calculation_tokens = []
         token = code_stream.get_current()
         while token and (not isinstance(token, Token) or (token.type != Token.EOL and token.value != SIGNS["R_BRACES"])):
-            calculation_tokens.append(token)
-            token = code_stream.inc()
-        ordered_tokens = shunting_yard_algorithm(calculation_tokens)
-        code_stream.replace_branched_tokens(ordered_tokens)
-        code_stream.merge(self)
+            if ((isinstance(token, Token) and (token.type == Token.IDENTIFIER or token.value in OPERATORS.values()))
+                    or isinstance(token, Number)):
+                calculation_tokens.append(token)
+                token = code_stream.inc()
+            else:
+                is_valid = False
+                code_stream.pop()
+                break
+        if is_valid:
+            ordered_tokens = shunting_yard_algorithm(calculation_tokens)
+            code_stream.replace_branched_tokens(ordered_tokens)
+            code_stream.merge(self)
         return is_valid
 
     def get_result(self) -> Token:
@@ -378,6 +392,51 @@ class Replaceable(CodeElement):
 
     def __repr__(self):
         return "Replaceable: " + "".join(str(c) for c in self.value)
+
+
+class ForInLoop(CodeElement):
+
+    def __init__(self, *args):
+        super().__init__()
+        self.grammars = [[(KEYWORDS, "for"), (Token, Token.IDENTIFIER), (SIGNS, SIGNS["COMMA"]),
+                          (Token, Token.IDENTIFIER), (KEYWORDS, "in"), (Coherency, List), (SIGNS, SIGNS["L_BRACES"]),
+                           (SIGNS, SIGNS["R_BRACES"])]]
+
+
+class ListElement(CodeElement):
+
+    def __init__(self, *args):
+        super().__init__()
+        self.grammars = [[(Token, Token.IDENTIFIER)], [(Token, Token.STRING)], [(Coherency, Number)],
+                         [(Coherency, Replaceable)]]
+
+        if len(args) > 0:
+            tokens = args[0]
+            self.value = tokens[0]
+
+
+class ListElements(CodeElement):
+
+    def __init__(self, *args):
+        super().__init__()
+        self.grammars = [[(Coherency, ListElement), (SIGNS, SIGNS["COMMA"]), (Coherency, ListElement)],
+                         [(Coherency, ListElement)]]
+
+        if len(args) > 0:
+            tokens = args[0]
+            self.elements = tokens
+
+
+class List(CodeElement):
+
+    def __init__(self, *args):
+        super().__init__()
+        self.grammars = [[(SIGNS, SIGNS["L_BRACKET"]), (Coherency, ListElements, Multiple),
+                          (SIGNS, SIGNS["R_BRACKET"])]]
+
+        if len(args) > 0:
+            tokens = args[0]
+            self.elements = tokens[1:-1]
 
 
 def create_abstract_code(tokens):
