@@ -5,6 +5,7 @@ AGE: 12
 FULL_NAME: name + surname
 }
 var test = 10 + 20 / 2
+Hello {test}
 /*<p {i}> {value}</p>
 //Global anonymous Constants
 {

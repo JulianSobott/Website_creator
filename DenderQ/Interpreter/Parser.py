@@ -39,6 +39,12 @@ MinSingle = 2
 Multiple = float("inf")
 
 
+class ElementType:
+    Token = (0, "Token")
+    Coherency = (1, "Coherency")
+    Reserved = (2, "Reserved")
+
+
 class CodeElement:
 
     def __init__(self, *args):
@@ -71,29 +77,23 @@ class CodeElement:
                 else:
                     element_counts = Single
 
-                if element_type is Coherency:
+                if element_type is ElementType.Coherency:
                     element_class = element_specification[0]
                     if type(token) == element_class:
                         token_fits_element = True
                     else:
                         token_fits_element = element_class().parse_possible(code_stream)
-                elif element_type is Token:
+                elif element_type is ElementType.Token:
                     try:
                         if token.type not in element_specification:
                             token_fits_element = False
                     except AttributeError:
                         token_fits_element = False
-                elif element_type is SIGNS:
+                elif element_type is ElementType.Reserved:
                     try:
                         if token.value not in element_specification:
                             token_fits_element = False
                     except AttributeError:
-                        token_fits_element = False
-                elif element_type is OPERATORS:
-                    if token.value not in element_specification:
-                        token_fits_element = False
-                elif element_type is KEYWORDS:
-                    if token.value not in element_specification:
                         token_fits_element = False
 
                 if element_counts == Optional:
@@ -188,10 +188,6 @@ class CodeBlock(CodeElement):
 
     def __repr__(self):
         return str(self.elements)
-
-
-class Coherency:
-    pass
 
 
 class Constant(CodeElement):
@@ -360,6 +356,23 @@ class Number(CodeElement):
         return self.value
 
 
+class String(CodeElement):
+
+    def __init__(self, *args):
+        super().__init__()
+        self.grammars = [[Token, Token.STRING]]
+        if len(args) > 0:
+            token = args[0][0]
+            self.value = token.value
+
+    def execute(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
+
+
 class Write(CodeElement):
 
     def __init__(self, *args):
@@ -412,13 +425,13 @@ class Replaceable(CodeElement):
         self.grammars = [[(SIGNS, SIGNS["L_BRACES"]), (Coherency, Expression), (SIGNS, SIGNS["R_BRACES"])]]
         if len(args) > 0:
             tokens = args[0]
-            self.identifier = tokens[1:-1]
+            self.expression = tokens[1:-1][0]
 
     def execute(self):
-        return symbolTable.get(self.identifier)
+        return symbolTable.get(self.expression.execute())
 
     def __repr__(self):
-        return "Replaceable: " + "".join(str(c) for c in self.identifier)
+        return "Replaceable: " + "".join(str(c) for c in self.expression)
 
 
 class ForInLoop(CodeElement):

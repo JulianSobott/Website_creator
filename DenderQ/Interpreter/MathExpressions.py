@@ -18,6 +18,7 @@ from Tokenizer import Token
 from Constants import OPERATORS, get_by_value, PRECEDENCES
 from Constants import SIGNS
 from Logging import logger
+from .Globals import symbolTable
 
 
 def shunting_yard_algorithm(tokens: list):
@@ -63,6 +64,7 @@ def shunting_yard_algorithm(tokens: list):
 
 
 def reverse_polish(ordered_tokens):
+    from .Parser import Number
     stack = []
     for token in ordered_tokens:
         if token.type == Token.NUMBER:
@@ -73,4 +75,10 @@ def reverse_polish(ordered_tokens):
             operator = token.value
             res = eval(str(num2) + str(operator) + str(num1))
             stack.append(Token(Token.NUMBER, res, 0, 0))
+        elif token.type == Token.IDENTIFIER:
+            value = symbolTable.get(token)
+            if isinstance(value, Number):
+                pass
+            if value and value.type == Token.NUMBER:
+                stack.append(value)
     return stack[0]
