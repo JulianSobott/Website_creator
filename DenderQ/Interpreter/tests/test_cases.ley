@@ -1,5 +1,19 @@
+###Write###
+<p>Hello World</p>
+<p>Hello goodbye</p>
+
+<p> for i in </p>
+
+###Write-expected###
+<p>Hello World</p>
+<p>Hello goodbye</p>
+<p> for i in </p>
+
 ###ConstantsBlock###
-pass
+{
+name: John
+}
+<p>{name}</p>
 
 ###ConstantsBlock-expected###
 pass
@@ -11,9 +25,6 @@ pass
 pass
 
 ###Calculation###
-pass
-
-###Write###
 pass
 
 

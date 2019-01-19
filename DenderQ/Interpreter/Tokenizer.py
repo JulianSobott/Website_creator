@@ -23,7 +23,7 @@ def create_tokens(chars: str):
     for char in char_stream:
         if char.isspace():
             if char in "\n\r":
-                token = Token(Token.EOL, char, char_stream.idx - 1, char_stream.idx - 1)
+                token = Token(Token.EOL, char, char_stream.idx - 1, char_stream.idx - 1, char_stream.line)
                 try:
                     if tokens[-1].type != Token.EOL:
                         tokens.append(token)
@@ -56,6 +56,7 @@ def get_string(char, char_stream):
     string = ""
     idx_start = char_stream.idx - 1
     idx_end = idx_start
+    line_number = char_stream.line
     is_escaped = False
     closed = False
     for next_char in char_stream:
@@ -77,7 +78,7 @@ def get_string(char, char_stream):
                 is_escaped = False
                 string += next_char
     if closed:
-        return Token(Token.STRING, string, idx_start, idx_end)
+        return Token(Token.STRING, string, idx_start, idx_end, line_number)
     else:
         add_error(MissingCharacter(char, get_current_file_name(), *char_stream.get_pos()))
         return None
@@ -87,6 +88,7 @@ def get_comment(char, char_stream):
     string = ""
     idx_start = char_stream.idx - 1
     idx_end = idx_start + 1
+    line_number = char_stream.line
     next_char = char_stream.get_next()
     if next_char not in [OPERATORS["STAR"], OPERATORS["SLASH"]]:
         char_stream.load_prev()
@@ -112,14 +114,14 @@ def get_comment(char, char_stream):
                     string += next_char
             else:
                 string += next_char
-
-    return Token(Token.COMMENT, string, idx_start, idx_end)
+    return Token(Token.COMMENT, string, idx_start, idx_end, line_number)
 
 
 def get_sign(char, char_stream, allowed_signs, is_operator):
     signs = char
     idx_start = char_stream.idx - 1
     idx_end = idx_start
+    line_number = char_stream.line
     try:
         next_char = char_stream.get_next()
         signs += next_char
@@ -137,13 +139,14 @@ def get_sign(char, char_stream, allowed_signs, is_operator):
         else:
             token_type = Token.SIGN
             sign_name = get_by_value(SIGNS, signs)
-        return Token(token_type, signs, idx_start, idx_end, sign_name=sign_name)
+        return Token(token_type, signs, idx_start, idx_end, line_number, sign_name=sign_name)
 
 
 def get_number(char, char_stream):
     number = char
     idx_start = char_stream.idx - 1
     idx_end = idx_start
+    line_number = char_stream.line
     while True:
         next_char = char_stream.get_next()
         if len(next_char) == 0:
@@ -159,14 +162,14 @@ def get_number(char, char_stream):
         except ValueError:
             char_stream.load_prev()
             break
-
-    return Token(Token.NUMBER, number, idx_start, idx_end)
+    return Token(Token.NUMBER, number, idx_start, idx_end, line_number)
 
 
 def get_identifier(char, char_stream):
     identifier = char
     idx_start = char_stream.idx - 1
     idx_end = idx_start
+    line_number = char_stream.line
     while True:
         next_char = char_stream.get_next()
         if len(next_char) == 0:
@@ -183,7 +186,7 @@ def get_identifier(char, char_stream):
         token_type = Token.KEYWORD
     else:
         token_type = Token.IDENTIFIER
-    return Token(token_type, identifier, idx_start, idx_end)
+    return Token(token_type, identifier, idx_start, idx_end, line_number)
 
 
 class Token:
@@ -196,12 +199,12 @@ class Token:
     COMMENT = (6, "COMMENT")
     EOL = (7, "END_OF_LINE")
 
-    def __init__(self, token_type, value, idx_start, idx_end, sign_name=None):
+    def __init__(self, token_type, value, idx_start, idx_end, line_number, sign_name=None):
         self.type = token_type
         self.value = value
         self.idx_start = idx_start
         self.idx_end = idx_end
-        self.line = 0
+        self.line = line_number
         if token_type == self.OPERATOR or token_type == self.SIGN:
             self.sign_name = sign_name
 

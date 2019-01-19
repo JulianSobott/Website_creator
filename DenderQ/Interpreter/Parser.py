@@ -419,10 +419,16 @@ class Write(CodeElement):
     def execute(self):
         text = ""
         idx_last_end = 0
+        idx_last_line = 0
         for arg in self.args:
             if isinstance(arg, Token):
                 value = str(arg.value)
-                fill_spaces = max(arg.idx_start - idx_last_end - 1, 0)
+                if idx_last_line < arg.line:
+                    idx_last_line = arg.line
+                    text += "\n"
+                    fill_spaces = 0
+                else:
+                    fill_spaces = max(arg.idx_start - idx_last_end - 1, 0)
                 text += value.rjust(len(value) + fill_spaces)
                 idx_last_end = arg.idx_end
             else:

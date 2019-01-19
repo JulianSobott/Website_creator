@@ -37,6 +37,9 @@ def test_case(self, name):
 
 class TestParser(unittest.TestCase):
 
+    def test_Write(self):
+        test_case(self, "Write")
+
     def test_ConstantsBlock(self):
         test_case(self, "ConstantsBlock")
 
@@ -44,9 +47,6 @@ class TestParser(unittest.TestCase):
         pass
 
     def test_Calculation(self):
-        pass
-
-    def test_Write(self):
         pass
 
     def test_ForInLoop(self):
