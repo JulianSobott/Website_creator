@@ -55,5 +55,6 @@ def buffer_to_file(text):
     _file_write_buffer += text
 
 
-def write_buffer_to_file():
-    logger.debug(_file_write_buffer)
+def write_buffer_to_file(file_path):
+    with open(file_path, "w+") as file:
+        file.write(_file_write_buffer)

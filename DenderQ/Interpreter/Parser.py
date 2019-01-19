@@ -42,7 +42,9 @@ Multiple = float("inf")
 class ElementType:
     Token = (0, "Token")
     Coherency = (1, "Coherency")
-    Reserved = (2, "Reserved")
+    Sign = (2, "Sign")
+    Keyword = (2, "Keyword")
+    Operator = (2, "Operator")
 
 
 class CodeElement:
@@ -89,9 +91,21 @@ class CodeElement:
                             token_fits_element = False
                     except AttributeError:
                         token_fits_element = False
-                elif element_type is ElementType.Reserved:
+                elif element_type is ElementType.Sign:
                     try:
-                        if token.value not in element_specification:
+                        if token.value not in SIGNS.values():
+                            token_fits_element = False
+                    except AttributeError:
+                        token_fits_element = False
+                elif element_type is ElementType.Keyword:
+                    try:
+                        if token.value not in KEYWORDS:
+                            token_fits_element = False
+                    except AttributeError:
+                        token_fits_element = False
+                elif element_type is ElementType.Operator:
+                    try:
+                        if token.value not in OPERATORS.values():
                             token_fits_element = False
                     except AttributeError:
                         token_fits_element = False
@@ -194,11 +208,11 @@ class Constant(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(Token, Token.IDENTIFIER), (SIGNS, SIGNS["COLON"]), (Coherency, Calculation),
-                         (Token, Token.EOL)],
-                        [(Token, Token.IDENTIFIER), (SIGNS, SIGNS["COLON"]), (Token, Token.IDENTIFIER, MinSingle),
-                         (Token, Token.EOL)]
-                        ]
+        self.grammars = [[(ElementType.Token, Token.IDENTIFIER), (ElementType.Sign, SIGNS["COLON"]),
+                          (ElementType.Coherency, Calculation), (ElementType.Token, Token.EOL)],
+                         [(ElementType.Token, Token.IDENTIFIER), (ElementType.Sign, SIGNS["COLON"]),
+                         (ElementType.Token, Token.IDENTIFIER, MinSingle), (ElementType.Token, Token.EOL)]
+                         ]
         self.args = args
         if len(args) > 0:
             tokens = args[0]
@@ -219,7 +233,7 @@ class Constants(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(Token, Token.EOL, Optional), (Coherency, Constant, MinSingle)]]
+        self.grammars = [[(ElementType.Token, Token.EOL, Optional), (ElementType.Coherency, Constant, MinSingle)]]
         if len(args) > 0:
             tokens = args[0]
             self.constants = tokens
@@ -236,8 +250,9 @@ class ConstantsBlock(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(Token, Token.IDENTIFIER, Optional), (SIGNS, SIGNS["L_BRACES"]), (Token, Token.EOL, Optional),
-                (Coherency, Constants), (Token, Token.EOL, Optional), (SIGNS, SIGNS["R_BRACES"])]]
+        self.grammars = [[(ElementType.Token, Token.IDENTIFIER, Optional), (ElementType.Sign, SIGNS["L_BRACES"]),
+                          (ElementType.Token, Token.EOL, Optional), (ElementType.Coherency, Constants),
+                          (ElementType.Token, Token.EOL, Optional), (ElementType.Sign, SIGNS["R_BRACES"])]]
         if len(args) > 0:
             tokens = args[0]
             with_identifier = 0
@@ -265,8 +280,8 @@ class Assignment(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(KEYWORDS, "var"), (Token, Token.IDENTIFIER), (OPERATORS, OPERATORS["EQ"]),
-                          (Coherency, Expression)]]
+        self.grammars = [[(ElementType.Keyword, "var"), (ElementType.Token, Token.IDENTIFIER),
+                          (ElementType.Operator, OPERATORS["EQ"]), (ElementType.Coherency, Expression)]]
         if len(args) > 0:
             tokens = args[0]
             self.identifier = tokens[1]
@@ -283,8 +298,8 @@ class Expression(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(Coherency, Calculation)],
-                         [(Coherency, List)]]
+        self.grammars = [[(ElementType.Coherency, Calculation)],
+                         [(ElementType.Coherency, List)]]
         if len(args) > 0:
             tokens = args[0]
             self.value = tokens[0]
@@ -344,7 +359,7 @@ class Number(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(Token, Token.NUMBER)]]
+        self.grammars = [[(ElementType.Token, Token.NUMBER)]]
         if len(args) > 0:
             token = args[0][0]
             self.value = token.value
@@ -360,7 +375,7 @@ class String(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[Token, Token.STRING]]
+        self.grammars = [[ElementType.Token, Token.STRING]]
         if len(args) > 0:
             token = args[0][0]
             self.value = token.value
@@ -370,7 +385,6 @@ class String(CodeElement):
 
     def __repr__(self):
         return self.value
-
 
 
 class Write(CodeElement):
@@ -422,7 +436,8 @@ class Replaceable(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(SIGNS, SIGNS["L_BRACES"]), (Coherency, Expression), (SIGNS, SIGNS["R_BRACES"])]]
+        self.grammars = [[(ElementType.Sign, SIGNS["L_BRACES"]), (ElementType.Coherency, Expression),
+                          (ElementType.Sign, SIGNS["R_BRACES"])]]
         if len(args) > 0:
             tokens = args[0]
             self.expression = tokens[1:-1][0]
@@ -438,17 +453,20 @@ class ForInLoop(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(KEYWORDS, "for"), (Token, Token.IDENTIFIER), (SIGNS, SIGNS["COMMA"]),
-                          (Token, Token.IDENTIFIER), (KEYWORDS, "in"), (Coherency, List), (SIGNS, SIGNS["L_BRACES"]),
-                          (Coherency, CodeBlock), (SIGNS, SIGNS["R_BRACES"])]]
+        self.grammars = [[(ElementType.Keyword, "for"), (ElementType.Token, Token.IDENTIFIER),
+                          (ElementType.Sign, SIGNS["COMMA"]), (ElementType.Token, Token.IDENTIFIER),
+                          (ElementType.Keyword, "in"), (ElementType.Coherency, List),
+                          (ElementType.Sign, SIGNS["L_BRACES"]), (ElementType.Coherency, CodeBlock),
+                          (ElementType.Sign, SIGNS["R_BRACES"])]]
 
 
 class ListElement(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(Token, Token.IDENTIFIER)], [(Token, Token.STRING)], [(Coherency, Number)],
-                         [(Coherency, Replaceable)]]
+        self.grammars = [[(ElementType.Token, Token.IDENTIFIER)], [(ElementType.Token, Token.STRING)],
+                         [(ElementType.Coherency, Number)],
+                         [(ElementType.Coherency, Replaceable)]]
 
         if len(args) > 0:
             tokens = args[0]
@@ -459,8 +477,9 @@ class ListElements(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(Coherency, ListElement), (SIGNS, SIGNS["COMMA"]), (Coherency, ListElement)],
-                         [(Coherency, ListElement)]]
+        self.grammars = [[(ElementType.Coherency, ListElement), (ElementType.Sign, SIGNS["COMMA"]),
+                          (ElementType.Coherency, ListElement)],
+                         [(ElementType.Coherency, ListElement)]]
 
         if len(args) > 0:
             tokens = args[0]
@@ -471,8 +490,8 @@ class List(CodeElement):
 
     def __init__(self, *args):
         super().__init__()
-        self.grammars = [[(SIGNS, SIGNS["L_BRACKET"]), (Coherency, ListElements, Multiple),
-                          (SIGNS, SIGNS["R_BRACKET"])]]
+        self.grammars = [[(ElementType.Sign, SIGNS["L_BRACKET"]), (ElementType.Coherency, ListElements, Multiple),
+                          (ElementType.Sign, SIGNS["R_BRACKET"])]]
 
         if len(args) > 0:
             tokens = args[0]

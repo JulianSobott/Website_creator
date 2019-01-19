@@ -25,7 +25,7 @@ def parse_file(in_file_path, out_file_path):
     code_block = Parser.create_abstract_code(tokens)
     code_block.execute()
     Globals.symbolTable.log_symbols()
-    Globals.write_buffer_to_file()
+    Globals.write_buffer_to_file(out_file_path)
     logger.debug(code_block)
 
 
