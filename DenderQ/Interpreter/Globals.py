@@ -43,6 +43,16 @@ class SymbolTable:
         except KeyError:
             add_error(UndefinedIdentifier(name, get_current_file_name(), identifier.line, identifier.idx_start))
 
+    def get_recursive(self, identifier):
+        try:
+            name = identifier.value
+            try:
+                return self.get_recursive(self.symbols[name])
+            except KeyError:
+                return identifier
+        except AttributeError:
+            return identifier
+
     def log_symbols(self):
         logger.debug(self.symbols)
 

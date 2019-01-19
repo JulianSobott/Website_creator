@@ -28,7 +28,8 @@ from .Streams import TokenStream, CodeElementStream, GrammarStream
 from .Tokenizer import Token
 from .Constants import *
 from .MathExpressions import shunting_yard_algorithm, reverse_polish
-from .Globals import symbolTable, buffer_to_file
+from .Globals import *
+from .Error_handler import *
 
 
 __all__ = ["create_abstract_code"]
@@ -130,9 +131,7 @@ class CodeElement:
                     else:
                         stop = False
                         try:
-                            if hit_once:
-                                grammar_stream.inc()
-                            else:
+                            if not hit_once:
                                 stop = True
                         except NameError:
                             stop = True
@@ -209,9 +208,9 @@ class Constant(CodeElement):
     def __init__(self, *args):
         super().__init__()
         self.grammars = [[(ElementType.Token, Token.IDENTIFIER), (ElementType.Sign, SIGNS["COLON"]),
-                          (ElementType.Coherency, Calculation), (ElementType.Token, Token.EOL)],
+                          (ElementType.Token, Token.IDENTIFIER, MinSingle), (ElementType.Token, Token.EOL)],
                          [(ElementType.Token, Token.IDENTIFIER), (ElementType.Sign, SIGNS["COLON"]),
-                         (ElementType.Token, Token.IDENTIFIER, MinSingle), (ElementType.Token, Token.EOL)]
+                          (ElementType.Coherency, Calculation), (ElementType.Token, Token.EOL)]
                          ]
         self.args = args
         if len(args) > 0:
@@ -374,11 +373,19 @@ class Number(CodeElement):
 class String(CodeElement):
 
     def __init__(self, *args):
+        """args: String, (Token,), str"""
         super().__init__()
         self.grammars = [[ElementType.Token, Token.STRING]]
         if len(args) > 0:
-            token = args[0][0]
-            self.value = token.value
+            if isinstance(args[0], str):
+                self.value = args[0]
+            elif isinstance(args[0], String):
+                self.value = args[0].value
+            elif isinstance(args[0][0], Token):
+                token = args[0][0]
+                self.value = token.value
+            else:
+                raise ValueError(f"{str(args)} is not assignable to String")
 
     def execute(self):
         return self.value
@@ -418,8 +425,8 @@ class Write(CodeElement):
 
     def execute(self):
         text = ""
-        idx_last_end = 0
-        idx_last_line = 0
+        idx_last_end = float("inf")
+        idx_last_line = float("inf")
         for arg in self.args:
             if isinstance(arg, Token):
                 value = str(arg.value)
@@ -432,9 +439,14 @@ class Write(CodeElement):
                 text += value.rjust(len(value) + fill_spaces)
                 idx_last_end = arg.idx_end
             else:
-                temp_text = arg.execute()
-                if temp_text:
-                    text += str(temp_text)
+                if isinstance(arg, Replaceable):
+                    temp_text = arg.execute()
+                    if temp_text:
+                        text += str(temp_text)
+                    idx_last_end = arg.end
+                else:
+                    add_error(MissPlacedType(type(arg), self.__class__.__name__, get_current_file_name(),
+                                             idx_last_line, idx_last_end))
         buffer_to_file(text)
 
 
@@ -447,12 +459,13 @@ class Replaceable(CodeElement):
         if len(args) > 0:
             tokens = args[0]
             self.expression = tokens[1:-1][0]
+            self.end = tokens[-1].idx_end
 
     def execute(self):
-        return symbolTable.get(self.expression.execute())
+        return self.expression.execute()
 
     def __repr__(self):
-        return "Replaceable: " + "".join(str(c) for c in self.expression)
+        return "Replaceable: " + str(self.expression)
 
 
 class ForInLoop(CodeElement):

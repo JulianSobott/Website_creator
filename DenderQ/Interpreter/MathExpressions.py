@@ -14,7 +14,7 @@ reverse_polish:
 @internal_use:
 
 """
-from Tokenizer import Token
+from .Tokenizer import Token
 from Constants import OPERATORS, get_by_value, PRECEDENCES
 from Constants import SIGNS
 from Logging import logger
@@ -64,21 +64,27 @@ def shunting_yard_algorithm(tokens: list):
 
 
 def reverse_polish(ordered_tokens):
-    from .Parser import Number
+    """
+    Pure Math:          (7 + 3)             @return: Number(10)
+    Math + Identifiers: (7 + var_three)     @return: Number(10) if var_three is initialized
+    Identifier:         x                   @return: value of x if set else String(x)
+    """
+    from .Parser import Number, String
     stack = []
     for token in ordered_tokens:
         if token.type == Token.NUMBER:
             stack.append(token)
         elif token.type == Token.OPERATOR:
-            num1 = stack.pop().value
-            num2 = stack.pop().value
+            v1 = stack.pop()
+            v2 = stack.pop()
+            num1 = v1.value
+            num2 = v2.value
             operator = token.value
             res = eval(str(num2) + str(operator) + str(num1))
-            stack.append(Token(Token.NUMBER, res, 0, 0))
+            stack.append(Number(res))
         elif token.type == Token.IDENTIFIER:
-            value = symbolTable.get(token)
-            if isinstance(value, Number):
-                pass
-            if value and value.type == Token.NUMBER:
-                stack.append(value)
+            value = symbolTable.get_recursive(token)
+            stack.append(value)
+    if isinstance(stack[0], Token):
+        return String(stack[0].value)
     return stack[0]

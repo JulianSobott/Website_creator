@@ -16,7 +16,7 @@ name: John
 <p>{name}</p>
 
 ###ConstantsBlock-expected###
-pass
+<p>John</p>
 
 ###Assignment###
 pass

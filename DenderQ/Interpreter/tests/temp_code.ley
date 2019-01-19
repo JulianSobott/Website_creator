@@ -1,5 +1,5 @@
-<p>Hello World</p>
-<p>Hello goodbye</p>
-
-<p> for i in </p>
+{
+name: John
+}
+<p>{name}</p>
 

@@ -10,7 +10,7 @@
 
 """
 
-__all__ = ["add_error", "UnknownCharacterSequence", "MissingCharacter", "UndefinedIdentifier"]
+__all__ = ["add_error", "UnknownCharacterSequence", "MissingCharacter", "UndefinedIdentifier", "MissPlacedType"]
 
 
 class Error:
@@ -50,6 +50,16 @@ class UndefinedIdentifier(Error):
         super().__init__(file_name, line, idx)
         self.undefined_identifier = identifier_name
         self.message = f"{self.NAME}: '{self.undefined_identifier}'"
+
+
+class MissPlacedType(Error):
+    NAME = "MissPlacedType"
+
+    def __init__(self, wrong_class, called_class, file_name, line, idx):
+        super().__init__(file_name, line, idx)
+        self.wrong_class = wrong_class
+        self.called_class = called_class
+        self.message = f"{self.NAME}: Behaviour for '{self.wrong_class}' in '{self.called_class}' is not defined"
 
 
 class Errors:
