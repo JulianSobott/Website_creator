@@ -20,7 +20,7 @@ missing:
 
 @internal_use:
 
-
+@TODO: Handle Replaceable which is not in table (Add Warning/Error)
 """
 
 from Logging import logger
@@ -81,11 +81,15 @@ class CodeElement:
                     element_counts = Single
 
                 if element_type is ElementType.Coherency:
-                    element_class = element_specification[0]
-                    if type(token) == element_class:
-                        token_fits_element = True
-                    else:
-                        token_fits_element = element_class().parse_possible(code_stream)
+                    fit_once = False
+                    for element_class in element_specification:
+                        if type(token) == element_class:
+                            fit_once = True
+                        else:
+                            token_fits_element = element_class().parse_possible(code_stream)
+                            if token_fits_element:
+                                fit_once = True
+                    token_fits_element = fit_once
                 elif element_type is ElementType.Token:
                     try:
                         if token.type not in element_specification:
@@ -169,9 +173,9 @@ class CodeBlock(CodeElement):
         token = code_stream.get_current()
         while token:
             if isinstance(token, Token):
-                while token and token.type == Token.EOL:
+                while isinstance(token, Token) and token.type == Token.EOL:
                     token = code_stream.get_current()
-                    if token and token.type == Token.EOL:
+                    if isinstance(token, Token) and token.type == Token.EOL:
                         code_stream.idx += 1
                 if token is None:
                     break
@@ -208,9 +212,7 @@ class Constant(CodeElement):
     def __init__(self, *args):
         super().__init__()
         self.grammars = [[(ElementType.Token, Token.IDENTIFIER), (ElementType.Sign, SIGNS["COLON"]),
-                          (ElementType.Token, Token.IDENTIFIER, MinSingle), (ElementType.Token, Token.EOL)],
-                         [(ElementType.Token, Token.IDENTIFIER), (ElementType.Sign, SIGNS["COLON"]),
-                          (ElementType.Coherency, Calculation), (ElementType.Token, Token.EOL)]
+                          (ElementType.Coherency, [String, Number, Calculation]), (ElementType.Token, Token.EOL)]
                          ]
         self.args = args
         if len(args) > 0:
@@ -375,7 +377,7 @@ class String(CodeElement):
     def __init__(self, *args):
         """args: String, (Token,), str"""
         super().__init__()
-        self.grammars = [[ElementType.Token, Token.STRING]]
+        self.grammars = [[(ElementType.Token, Token.STRING)]]
         if len(args) > 0:
             if isinstance(args[0], str):
                 self.value = args[0]
@@ -417,6 +419,9 @@ class Write(CodeElement):
             else:
                 write_tokens.append(token)
             token = code_stream.inc()
+            if not isinstance(token, Token):
+                code_stream.pop()
+                return False
         code_stream.merge(self)
         return is_valid
 
@@ -447,6 +452,7 @@ class Write(CodeElement):
                 else:
                     add_error(MissPlacedType(type(arg), self.__class__.__name__, get_current_file_name(),
                                              idx_last_line, idx_last_end))
+        text += "\n"
         buffer_to_file(text)
 
 
@@ -462,7 +468,12 @@ class Replaceable(CodeElement):
             self.end = tokens[-1].idx_end
 
     def execute(self):
-        return self.expression.execute()
+        value = self.expression.execute()
+        if isinstance(value, Token):
+            add_error(UndefinedIdentifier(value.value, get_current_file_name(), value.line,
+                                          value.idx_end))
+            return String(f"{{{value.value}}}")
+        return value
 
     def __repr__(self):
         return "Replaceable: " + str(self.expression)

@@ -1,5 +1,9 @@
 {
-name: John
+name: "John"
+surname: "Johnson"
+age: 90 + 10
 }
-<p>{name}</p>
+<p>{name}   </p>
+<p>{surname}</p>
+<p>{age}</p>
 

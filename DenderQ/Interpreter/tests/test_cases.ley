@@ -11,12 +11,18 @@
 
 ###ConstantsBlock###
 {
-name: John
+name: "John"
+surname: "Johnson"
+age: 90 + 10
 }
-<p>{name}</p>
+<p>{name}   </p>
+<p>{surname}</p>
+<p>{age}</p>
 
 ###ConstantsBlock-expected###
-<p>John</p>
+<p>John   </p>
+<p>Johnson</p>
+<p>100</p>
 
 ###Assignment###
 pass
